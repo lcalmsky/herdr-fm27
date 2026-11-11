@@ -4,9 +4,30 @@ A Football Manager 27-styled layout for [Herdr](https://herdr.dev). Claude Code,
 
 The data, grouping, actions and keys are forked from the author's own chiikawa-cards layout.
 
-![FM27: the Squad, Inbox, Staff and Club screens](preview.png)
+![FM27: the Squad screen](preview.png)
 
 The screenshots use made-up sessions and terminals, rendered by `art/render.mjs` from `art/preview.html`, a sample-data copy of the window.
+
+## Screens
+
+- **Squad**. The match table (left) and the selected session's player overview (right). The table groups sessions into *Touchline* (needs you), *In possession* (working) and *Full time* (done, four shown with "+N more at full time"); a stall joins the touchline as a *Stoppage*.
+
+  ![FM27: the Squad screen with the live terminals](art/shots/squad.png)
+
+- **Inbox**. The touchline calls and match reports on the left, the picked session's or report's body on the right, and the action row underneath. Filter chips *All*, *Touchline (n)*, *Match reports (n)*; with no rows the body is the calm empty state: "Nothing on the touchline".
+
+  ![FM27: the Inbox screen](art/shots/inbox.png)
+
+- **Staff**. The backroom: every Claude and Codex login, the custom commands and the Claude start command. The radio marks the login new sessions start under, the 5h and week windows read as wage budgets, and **Continue this session as** is *Transfer this session here*.
+
+  ![FM27: the Staff screen](art/shots/staff.png)
+
+- **Club**. Every git repository is a ground and every space a pitch in it, one row per space with the crew's status pills. A click selects a space, a drag (or ⌥↑/⌥↓) reorders it inside its ground, a right-click opens Herdr's space menu, and the chrome's crest opens the same list as a dropdown.
+
+  ![FM27: the Club screen](art/shots/club.png)
+
+
+Below the screens the **live** block is always there: the tabs bar and the active terminal. **Editor** panes are optional and come from `hv`.
 
 ## Add it
 
@@ -69,27 +90,6 @@ The Dossier's Jira and Slack rows and the repository prefixes `fm-squad` recogni
 - `repos` — the repository prefixes a session folder may start with (`shop-<rest>-<TICKET>`); the prefix is stripped from a row's ground. Without it no folder is read as a repository.
 
 A missing or invalid file reads as if it were absent, and nothing appears in the notice bar.
-
-## Screens
-
-- **Squad**. The match table (left) and the selected session's player overview (right). The table groups sessions into *Touchline* (needs you), *In possession* (working) and *Full time* (done, four shown with "+N more at full time"); a stall joins the touchline as a *Stoppage*.
-
-  ![FM27: the Squad screen with the live terminals](art/shots/squad.png)
-
-- **Inbox**. The touchline calls and match reports on the left, the picked session's or report's body on the right, and the action row underneath. Filter chips *All*, *Touchline (n)*, *Match reports (n)*; with no rows the body is the calm empty state: "Nothing on the touchline".
-
-  ![FM27: the Inbox screen](art/shots/inbox.png)
-
-- **Staff**. The backroom: every Claude and Codex login, the custom commands and the Claude start command. The radio marks the login new sessions start under, the 5h and week windows read as wage budgets, and **Continue this session as** is *Transfer this session here*.
-
-  ![FM27: the Staff screen](art/shots/staff.png)
-
-- **Club**. Every git repository is a ground and every space a pitch in it, one row per space with the crew's status pills. A click selects a space, a drag (or ⌥↑/⌥↓) reorders it inside its ground, a right-click opens Herdr's space menu, and the chrome's crest opens the same list as a dropdown.
-
-  ![FM27: the Club screen](art/shots/club.png)
-
-
-Below the screens the **live** block is always there: the tabs bar and the active terminal. **Editor** panes are optional and come from `hv`.
 
 ## Keys
 
