@@ -1,0 +1,55 @@
+#!/bin/sh
+# hv — open each file in the fm-editor mod beside the terminal that ran it.
+set -u
+# The Herdr Open applet runs this with launchd's PATH, which lacks ~/.local/bin.
+APP=${HERDR_APP:-$(command -v herdr-app || echo "$HOME/.local/bin/herdr-app")}
+TERMINAL=${HC_TERMINAL_ID:-}
+LIST=$(mktemp "${TMPDIR:-/tmp}/hv-ls.XXXXXX") || LIST=
+trap 'rm -f "$LIST"' EXIT
+if [ -n "$TERMINAL" ] && [ -n "$LIST" ]; then
+  "$APP" ls >"$LIST" 2>/dev/null || : >"$LIST"
+fi
+status=0
+for target in "$@"; do
+  case $target in
+    /*) file=$target ;;
+    *) file=$PWD/$target ;;
+  esac
+  if [ -d "$file" ]; then
+    printf 'hv: %s is a directory\n' "$target" >&2
+    status=1
+    continue
+  fi
+  json=$(/usr/bin/python3 -I -c '
+import json, sys
+path, terminal, list_path = sys.argv[1], sys.argv[2], sys.argv[3]
+pane = None
+if terminal and list_path:
+    try:
+        with open(list_path) as handle:
+            data = json.load(handle)
+    except Exception:
+        data = None
+    def walk(node):
+        if isinstance(node, dict):
+            if node.get("terminal") == terminal and isinstance(node.get("pane"), str):
+                return node["pane"]
+            for value in node.values():
+                found = walk(value)
+                if found:
+                    return found
+        elif isinstance(node, list):
+            for value in node:
+                found = walk(value)
+                if found:
+                    return found
+        return None
+    pane = walk(data)
+payload = {"direction": "right", "mod": "fm-editor", "props": {"file": path}}
+if pane:
+    payload["pane"] = pane
+print(json.dumps(payload))
+' "$file" "$TERMINAL" "$LIST") || { status=1; continue; }
+  "$APP" do pane.split "$json" >/dev/null || { printf 'hv: %s did not open\n' "$target" >&2; status=1; }
+done
+exit $status

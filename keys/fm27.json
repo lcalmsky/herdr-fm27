@@ -1,0 +1,18 @@
+{
+  "layout:fm27": {
+    "ctrl-alt-p": "fm-chrome.toggle",
+    "ctrl-shift-a": {
+      "command": "layout.select",
+      "args": {
+        "stack": "screens",
+        "child": "staff"
+      }
+    },
+    "cmd-=": "fm-chrome.font_in",
+    "cmd-+": "fm-chrome.font_in",
+    "cmd--": "fm-chrome.font_out",
+    "cmd-0": "fm-chrome.font_reset",
+    "cmd-[": "fm-chrome.back",
+    "cmd-]": "fm-chrome.forward"
+  }
+}

@@ -1,0 +1,115 @@
+/* Hallmark · custom · shape: app screen · signature: the Squad table, every session a row you can act on · genre: atmospheric */
+/* critique: FM27 portal grammar carried into an ADE; colour only marks state, selection and the one Continue action */
+/* waive 67: ticket keys and DDL are data identifiers, uppercase by nature; terminal mock copies the real Claude Code screen (63) */
+/* waive 24b: FM chrome is dense; 2, 6 and 10px steps keep rows at FM heights */
+/* waive 54/67: the user asked for the FM27 look, whose main nav and panel heads are untracked condensed capitals in the display face */
+:root {
+  /* ground */
+  --bg: #0e0918;
+  --bg-2: #130d20;
+  --panel: rgba(24, 16, 38, 0.94);
+  --panel-solid: #181026;
+  --panel-2: #1f1631;
+  --panel-3: #281d3d;
+  --line: #2f2447;
+  --line-2: #3d3059;
+  --row-alt: rgba(255, 255, 255, 0.025);
+
+  /* chrome */
+  --nav: #1b2875;
+  --nav-2: #222f88;
+  --nav-3: #3550c8;
+  --nav-ink: #e9ecff;
+  --sub: #120c22;
+
+  /* ink */
+  --ink: #f2eff9;
+  --ink-2: #bdb4d1;
+  --ink-3: #82789a;
+  --ink-4: #5d5474;
+
+  /* state */
+  --accent: #ff2e7e;
+  --accent-2: #e0156c;
+  --accent-ink: #fbfaff;
+  --link: #ff5aa8;
+  --needs: #ff4d5e;
+  --needs-fill: #d42035;
+  --needs-band: #7a1424;
+  --needs-band-2: #5a0f1d;
+  --stall: #c9a25a;
+  --working: #36d26b;
+  --working-band: #0f4a2c;
+  --working-band-2: #0a3720;
+  --done: #9a86d6;
+  --done-band: #2c1a4c;
+  --done-band-2: #21133a;
+  --focus-kb: #f6d84a;
+  --focus-mouse: #6f8cff;
+  --bar-track: #2c2340;
+  --bar: #ff3d8f;
+  --bar-hot: #ff4d5e;
+
+  /* veils and shades over coloured chrome */
+  --paper: #fbfaff;
+  --mask: #000000;
+  --veil-1: rgba(255, 255, 255, 0.07);
+  --veil-2: rgba(255, 255, 255, 0.1);
+  --veil-3: rgba(255, 255, 255, 0.15);
+  --veil-line: rgba(255, 255, 255, 0.12);
+  --veil-trail: rgba(255, 255, 255, 0.35);
+  --veil-faint: rgba(255, 255, 255, 0.4);
+  --veil-ink: rgba(255, 255, 255, 0.75);
+  --shade-1: rgba(0, 0, 0, 0.18);
+  --shade-2: rgba(0, 0, 0, 0.22);
+  --shade-3: rgba(0, 0, 0, 0.28);
+  --shadow: rgba(0, 0, 0, 0.45);
+  --shadow-deep: rgba(0, 0, 0, 0.6);
+  --shadow-win: rgba(0, 0, 0, 0.55);
+  --name-bg: rgba(10, 6, 18, 0.82);
+  --select: #8b3ff2;
+  --nat-cld: #e07a52;
+  --nat-cdx: #3a8dde;
+  --nat-gem: #5b8cff;
+  --heat-g1: rgba(54, 210, 107, 0.5);
+  --heat-g2: rgba(246, 216, 74, 0.25);
+
+  /* pitch */
+  --pitch-ink: #fbfaff;
+  --heat: 255, 77, 94;
+
+  /* terminal */
+  --term-bg: #0b0714;
+  --term-ink: #d9d3ea;
+  --term-dim: #7f7699;
+  --term-green: #6fe39a;
+  --term-pink: #ff7ab8;
+  --term-yellow: #f6d84a;
+
+  /* type */
+  --font-body: "Barlow", "Pretendard Variable", Pretendard, system-ui, sans-serif;
+  --font-display: "Barlow Condensed", "Barlow", "Pretendard Variable", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --fs-11: 11px;
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-14: 14px;
+  --fs-16: 16px;
+  --fs-18: 18px;
+  --fs-20: 20px;
+  --fs-24: 24px;
+  --fs-30: 30px;
+
+  --r-1: 4px;
+  --r-2: 6px;
+  --r-3: 10px;
+  --r-pill: 999px;
+  --hi: rgba(255, 255, 255, 0.05);
+  --hi-2: rgba(255, 255, 255, 0.09);
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --line-soft: rgba(255, 255, 255, 0.045);
+
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+}

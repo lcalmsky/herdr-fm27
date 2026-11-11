@@ -1,0 +1,239 @@
+{
+  "id": "root",
+  "type": "column",
+  "theme": "fm27",
+  "background": "#0e0918",
+  "ui_font": "Barlow",
+  "font": "JetBrains Mono",
+  "font_size": 14,
+  "terminal_padding": [
+    12,
+    12
+  ],
+  "titlebar": "none",
+  "traffic_lights": [
+    14,
+    20
+  ],
+  "resizable": true,
+  "children": [
+    {
+      "id": "top",
+      "type": "block",
+      "size": {
+        "px": 56
+      },
+      "resizable": false,
+      "window_drag": true,
+      "background": {
+        "gradient": [
+          "#222f88",
+          "#1b2875"
+        ],
+        "angle": 180
+      },
+      "content": {
+        "mod": "fm-chrome",
+        "props": {
+          "role": "top"
+        }
+      }
+    },
+    {
+      "id": "sub",
+      "type": "block",
+      "size": {
+        "px": 38
+      },
+      "resizable": false,
+      "background": "#120c22",
+      "content": {
+        "mod": "fm-chrome",
+        "props": {
+          "role": "sub"
+        }
+      }
+    },
+    {
+      "id": "screens",
+      "type": "stack",
+      "active": "squad",
+      "size": {
+        "weight": 41
+      },
+      "min": 300,
+      "children": [
+        {
+          "id": "squad",
+          "type": "row",
+          "gap": 12,
+          "padding": [
+            12,
+            12
+          ],
+          "resizable": false,
+          "children": [
+            {
+              "id": "squad-table",
+              "type": "block",
+              "size": {
+                "weight": 1
+              },
+              "radius": 10,
+              "shadow": "md",
+              "background": "#181026",
+              "content": {
+                "mod": "fm-squad"
+              }
+            },
+            {
+              "id": "squad-overview",
+              "type": "block",
+              "size": {
+                "px": 470
+              },
+              "radius": 10,
+              "shadow": "md",
+              "background": "#181026",
+              "content": {
+                "mod": "fm-squad",
+                "props": {
+                  "role": "overview"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "inbox",
+          "type": "row",
+          "padding": [
+            12,
+            12
+          ],
+          "children": [
+            {
+              "id": "inbox-screen",
+              "type": "block",
+              "radius": 10,
+              "shadow": "md",
+              "background": "#181026",
+              "content": {
+                "mod": "fm-squad",
+                "props": {
+                  "role": "inbox"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "staff",
+          "type": "row",
+          "padding": [
+            12,
+            12
+          ],
+          "children": [
+            {
+              "id": "staff-screen",
+              "type": "block",
+              "radius": 10,
+              "shadow": "md",
+              "background": "#181026",
+              "content": {
+                "mod": "fm-staff",
+                "props": {
+                  "role": "screen"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "club",
+          "type": "row",
+          "padding": [
+            12,
+            12
+          ],
+          "children": [
+            {
+              "id": "club-screen",
+              "type": "block",
+              "radius": 10,
+              "shadow": "md",
+              "background": "#181026",
+              "content": {
+                "mod": "fm-club",
+                "props": {
+                  "role": "screen"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "live",
+      "type": "column",
+      "padding": [
+        0,
+        12
+      ],
+      "resizable": false,
+      "children": [
+        {
+          "id": "live-tabs",
+          "type": "block",
+          "size": {
+            "px": 40
+          },
+          "background": "#1f1631",
+          "radius": 10,
+          "content": {
+            "mod": "fm-live",
+            "props": {
+              "role": "tabs"
+            }
+          }
+        },
+        {
+          "id": "main",
+          "type": "block",
+          "background": "#0b0714",
+          "radius": 10,
+          "content": {
+            "tab": "active",
+            "pane": {
+              "header": {
+                "content": {
+                  "mod": "fm-live",
+                  "props": {
+                    "role": "pane"
+                  }
+                },
+                "reveal": "always",
+                "height": 32,
+                "position": "top"
+              },
+              "background": "#0b0714",
+              "focus": {
+                "width": 1,
+                "color": "#f6d84a"
+              },
+              "radius": 10,
+              "gap": 8,
+              "lone": true
+            }
+          }
+        }
+      ],
+      "size": {
+        "weight": 59
+      },
+      "min": 200
+    }
+  ]
+}

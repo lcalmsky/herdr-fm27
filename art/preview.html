@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<!-- Sample-data rebuild of the FM27 Herdr window for preview.png and the screen shots.
+     Sizes and colours follow shared/tokens.js, layouts/fm27.json and mods/fm-*; every session,
+     account and repository here is made up. setScreen(id) switches the screen under the same chrome. -->
+<html><head><meta charset="utf-8">
+<title>FM27 Herdr preview</title>
+<style>
+@font-face{font-family:Barlow;src:url(../shared/fonts/Barlow-Regular.ttf);font-weight:400;font-style:normal}
+@font-face{font-family:Barlow;src:url(../shared/fonts/Barlow-Medium.ttf);font-weight:500;font-style:normal}
+@font-face{font-family:Barlow;src:url(../shared/fonts/Barlow-SemiBold.ttf);font-weight:600;font-style:normal}
+@font-face{font-family:Barlow;src:url(../shared/fonts/Barlow-Bold.ttf);font-weight:700;font-style:normal}
+@font-face{font-family:Barlow Condensed;src:url(../shared/fonts/BarlowCondensed-SemiBold.ttf);font-weight:600;font-style:normal}
+@font-face{font-family:Barlow Condensed;src:url(../shared/fonts/BarlowCondensed-Bold.ttf);font-weight:700;font-style:normal}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0e0918;--bg2:#130d20;--panel:#181026;--panel2:#1f1631;--panel3:#281d3d;
+  --line:#2f2447;--line2:#3d3059;--line-soft:rgba(255,255,255,.043);--row-alt:rgba(255,255,255,.024);
+  --nav:#1b2875;--nav2:#222f88;--nav3:#3550c8;--nav-ink:#e9ecff;--sub:#120c22;
+  --ink:#f2eff9;--ink2:#bdb4d1;--ink3:#82789a;--ink4:#5d5474;
+  --accent:#ff2e7e;--accent2:#e0156c;--accent-ink:#fbfaff;--link:#ff5aa8;
+  --needs:#ff4d5e;--needs-fill:#d42035;--stall:#c9a25a;--working:#36d26b;--working-band:#0f4a2c;
+  --needs-band:#7a1424;--needs-band2:#5a0f1d;--done:#9a86d6;--done-band:#2c1a4c;--done-band2:#21133a;
+  --focus-kb:#f6d84a;--bar-track:#2c2340;--bar:#ff3d8f;--bar-hot:#ff4d5e;
+  --veil1:rgba(255,255,255,.07);--shade2:rgba(0,0,0,.22);--shade3:rgba(0,0,0,.28);--veil-ink:rgba(255,255,255,.75);
+  --paper:#fbfaff;--select:#8b3ff2;--nat-cld:#e07a52;--nat-cdx:#3a8dde;--nat-gem:#5b8cff;
+  --term-bg:#0b0714;--term-ink:#d9d3ea;--term-dim:#7f7699;--term-green:#6fe39a;--term-pink:#ff7ab8;--term-yellow:#f6d84a;
+  --font-body:Barlow,system-ui,sans-serif;--font-display:"Barlow Condensed",Barlow,sans-serif;
+  --font-mono:"JetBrains Mono",Menlo,monospace;
+}
+html,body{background:#000;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font-body);color:var(--ink)}
+#win{
+  width:1680px;height:1860px;display:flex;flex-direction:column;overflow:hidden;position:relative;
+  border-radius:12px;color:var(--ink);
+  background:
+    radial-gradient(900px 620px at 84% 0%,rgba(80,50,160,.20),transparent 70%),
+    radial-gradient(1100px 700px at 10% 100%,rgba(62,34,120,.24),transparent 72%),
+    var(--bg);
+}
+.lights{position:absolute;left:14px;top:22px;display:flex;gap:8px;z-index:5}
+.lights i{width:12px;height:12px;border-radius:50%;display:block}
+.spin{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--working);border-right-color:transparent;display:inline-block;flex:none}
+.spin.s{width:9px;height:9px;border-width:1.5px}
+.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.disp{font-family:var(--font-display);font-weight:700}
+.mono{font-family:var(--font-mono)}
+
+/* ── top bar ───────────────────────────────────────────────────────────── */
+#top{
+  height:56px;flex:none;display:flex;align-items:center;gap:14px;padding:0 12px 0 84px;
+  background:linear-gradient(180deg,var(--nav2),var(--nav));color:var(--nav-ink);
+}
+.navbtn{width:34px;height:40px;flex:none;border-radius:4px;background:var(--nav3);display:grid;place-items:center;color:var(--nav-ink)}
+.navbtn.off{opacity:.45}
+.club-sw{height:44px;flex:none;display:flex;align-items:center;gap:8px;padding:0 6px;border-radius:4px}
+.crest{width:40px;height:44px;display:block;object-fit:contain}
+.club-sw .who{min-width:0;max-width:200px}
+.club-sw .who b{display:block;font-family:var(--font-display);font-weight:700;font-size:20px;line-height:1;text-transform:uppercase;color:var(--nav-ink)}
+.club-sw .who small{display:block;font-size:12px;font-weight:500;color:var(--nav-ink);opacity:.7;margin-top:2px}
+.caret{opacity:.7;flex:none}
+.menu{height:100%;display:flex;align-items:stretch;margin-left:6px}
+.mm{position:relative;height:100%;display:flex;align-items:center;gap:6px;padding:0 14px;font-family:var(--font-display);font-weight:700;font-size:20px;text-transform:uppercase;color:var(--nav-ink);opacity:.78;white-space:nowrap}
+.mm.on{opacity:1}
+.mm.on::after{content:"";position:absolute;left:12px;right:12px;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--nav-ink)}
+.mm .cnt{min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--needs-fill);color:var(--paper);font-family:var(--font-body);font-weight:800;font-size:11px;line-height:18px;text-align:center}
+.grow{flex:1;min-width:0}
+.scout{width:150px;height:32px;flex:none;display:flex;align-items:center;gap:8px;padding:0 12px;border-radius:4px;background:rgba(0,0,0,.18)}
+.scout .q{font-size:14px;color:var(--nav-ink);opacity:.75;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.iconbtn{width:32px;height:32px;flex:none;display:grid;place-items:center;border-radius:4px;position:relative;color:var(--nav-ink)}
+.iconbtn .badge{position:absolute;top:1px;right:0;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-size:10px;font-weight:700;line-height:16px;text-align:center}
+.datebox{height:44px;flex:none;display:flex;align-items:center;gap:10px;padding:0 6px 0 12px;border-radius:4px;background:var(--shade2)}
+.datebox b{display:block;font-family:var(--font-display);font-weight:700;font-size:16px;line-height:1;color:var(--nav-ink);white-space:nowrap}
+.datebox small{display:block;margin-top:3px;font-size:12px;font-weight:500;color:var(--nav-ink);opacity:.75;white-space:nowrap}
+.clock{height:22px;padding:0 6px;border-radius:3px;background:var(--ink);display:flex;align-items:center;font-family:var(--font-display);font-weight:700;font-size:18px;line-height:1;color:var(--nav)}
+.continue{width:210px;height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 14px 0 18px;border-radius:4px;background:linear-gradient(90deg,var(--accent2),var(--accent));color:var(--accent-ink)}
+.continue b{display:block;font-family:var(--font-display);font-weight:700;font-size:20px;line-height:1}
+.continue small{display:block;margin-top:2px;font-size:12px;font-weight:600;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+
+/* ── sub bar ───────────────────────────────────────────────────────────── */
+#sub{height:38px;flex:none;background:var(--sub);display:flex;align-items:stretch}
+.subline{width:100%;display:none;align-items:stretch;gap:4px;padding:0 12px}
+.crumb{flex:none;display:flex;align-items:center;padding-right:14px;font-size:14px;font-weight:700;color:var(--ink)}
+.subdiv{width:1px;height:22px;flex:none;margin:auto 6px auto 0;background:var(--line)}
+.stab{position:relative;height:100%;display:flex;align-items:center;gap:6px;padding:0 10px;font-size:14px;font-weight:500;color:var(--ink2);white-space:nowrap}
+.stab b{font-weight:700;color:var(--ink)}
+.stab .n{font-weight:700}
+.stab .n.needs{color:var(--needs)}.stab .n.working{color:var(--working)}.stab .n.done{color:var(--done)}
+.stab.on::after{content:"";position:absolute;left:8px;right:8px;bottom:6px;height:2px;background:var(--ink)}
+.keysbtn{height:26px;flex:none;align-self:center;display:flex;align-items:center;gap:6px;padding:0 10px;border-radius:4px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);font-size:13px}
+.keysbtn b{font-size:11px;font-weight:700;color:var(--ink3)}
+
+/* ── screens ───────────────────────────────────────────────────────────── */
+#screens{height:724px;flex:none;padding:12px 12px 0;display:flex;min-height:0}
+.screen{display:none;width:100%;min-height:0;gap:12px}
+.panel{background:var(--panel);border-radius:10px;overflow:hidden;position:relative;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 0 0 1px var(--line-soft)}
+
+/* squad table */
+#screen-squad{display:flex}
+#squad-table{flex:1;min-width:0;display:flex;flex-direction:column}
+.sq-head{height:46px;flex:none;display:flex;align-items:center;gap:10px;padding:0 18px}
+.sq-head .title{font-family:var(--font-display);font-weight:700;font-size:20px;color:var(--ink);line-height:1}
+.chip{height:22px;flex:none;display:inline-flex;align-items:center;padding:0 8px;border-radius:999px;background:var(--panel3);font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--ink);white-space:nowrap}
+.sq-head .meta{font-size:12px;color:var(--ink3);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:320px}
+.sq-head .hint{font-size:12px;color:var(--ink3);white-space:nowrap}
+.cols{height:26px;flex:none;display:flex;align-items:center;padding-right:10px;color:var(--ink3);font-size:11px;font-weight:600}
+.cols>span{flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rows{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.grp{height:40px;flex:none;width:100%;display:flex;align-items:center;gap:8px;padding:0 10px 0 14px;white-space:nowrap}
+.grp i{width:3px;height:12px;border-radius:2px;flex:none;display:block}
+.grp b{font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--ink)}
+.grp em{font-family:var(--font-display);font-weight:700;font-size:14px;font-style:normal;color:var(--ink2)}
+.grp span{font-size:12px;color:var(--ink3)}
+.r{height:52px;flex:none;width:100%;position:relative;display:flex;align-items:center;padding-right:10px}
+.r.alt{background:var(--row-alt)}
+.r.sel{background:var(--panel3)}
+.r .lit{width:3px;height:100%;flex:none;background:transparent}
+.r.sel .lit{background:var(--focus-kb)}
+.r>span{flex:none;display:flex;align-items:center;min-width:0}
+.c-si{width:46px;justify-content:center}
+.sq{width:22px;height:22px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex:none;line-height:1}
+.sq.needs{background:var(--needs-fill);color:var(--paper)}
+.sq.stall{background:var(--stall);color:var(--bg)}
+.sq.working{background:var(--working-band)}
+.sq.done{background:var(--panel3);color:var(--done)}
+.c-no{width:30px;justify-content:flex-end;padding-right:10px;font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--ink3)}
+.c-ticket{width:96px;font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--ink)}
+.r.sel .c-ticket{color:var(--focus-kb)}
+.r>span.c-brief{flex:1;min-width:0;flex-direction:column;align-items:flex-start;justify-content:center;gap:1px}
+.c-brief b{max-width:100%;font-size:14px;font-weight:600;color:var(--ink);line-height:18px}
+.c-brief span{max-width:100%;font-size:12px;color:var(--ink3);line-height:16px}
+.c-brief span.now{color:var(--working)}
+.c-brief span.mute{color:var(--ink4)}
+.c-nat{width:70px;gap:4px}
+.nat{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--ink2)}
+.nat i{position:relative;width:18px;height:12px;border-radius:2px;display:block;overflow:hidden;flex:none}
+.nat i::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:var(--shade2)}
+.nat.cld i{background:var(--nat-cld)}.nat.cdx i{background:var(--nat-cdx)}.nat.gem i{background:var(--nat-gem)}
+.c-ground{width:150px;font-size:12px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.c-ph{width:34px;font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--ink2)}
+.c-mins{width:78px;gap:3px}
+.c-mins b{font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--ink2);line-height:1}
+.r.needs .c-mins b{color:var(--needs)}
+.r.stall .c-mins b{color:var(--stall)}
+.c-mins small{font-size:11px;font-weight:600;color:var(--ink3)}
+.c-plan{width:128px;gap:6px}
+.plan{display:flex;align-items:center;gap:6px}
+.segs{width:84px;flex:none;display:flex;gap:3px;height:5px}
+.segs i{flex:1;height:5px;border-radius:2px;display:block}
+.segs i.d{background:var(--working)}
+.segs i.c{background:var(--focus-kb)}
+.segs i.n{background:var(--bar-track)}
+.plan b{font-size:11px;font-weight:600;color:var(--ink2)}
+.c-rpt{width:52px}
+.rpt{height:22px;display:inline-flex;align-items:center;gap:4px;padding:0 6px;border-radius:6px;background:var(--panel3);font-family:var(--font-display);font-weight:700;font-size:12px;color:var(--ink2)}
+.c-pr{width:60px;font-size:12px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+
+/* overview */
+#overview{width:470px;flex:none;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.po-head{flex:none;position:relative;padding:16px 20px 14px;background:linear-gradient(180deg,var(--needs-band),var(--needs-band2))}
+.po-head h3{font-family:var(--font-display);font-weight:700;font-size:38px;line-height:1;color:var(--ink)}
+.po-head p{margin-top:4px;font-size:16px;font-weight:600;color:var(--ink2);line-height:1.3}
+.po-head .tags{display:flex;flex-wrap:nowrap;gap:5px;margin-top:10px}
+.po-head .tags span{height:22px;padding:0 10px;border-radius:999px;background:var(--shade2);display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--veil-ink);white-space:nowrap}
+.po-head .tags i{width:14px;height:10px;border-radius:2px;background:var(--nat-cld);display:block;flex:none}
+.po-stats{flex:none;display:flex;padding:4px 8px}
+.po-stats>div{flex:1;min-width:0;padding:8px 14px;border-right:1px solid var(--line-soft)}
+.po-stats>div:last-child{border-right:0}
+.po-stats dt{font-size:11px;font-weight:600;color:var(--ink3);white-space:nowrap}
+.po-stats dd{margin-top:2px;font-family:var(--font-display);font-weight:700;font-size:20px;color:var(--ink);line-height:1.1;white-space:nowrap}
+.po-sec{flex:none;display:flex;align-items:center;padding:14px 20px 6px}
+.po-sec h4{font-family:var(--font-display);font-weight:700;font-size:16px;text-transform:uppercase;color:var(--ink);line-height:1}
+.po-sec span{margin-left:auto;font-size:12px;font-weight:600;color:var(--ink3)}
+.po-word{margin:0 20px;padding:12px 14px;border-radius:6px;background:var(--veil1);font-size:14px;line-height:1.45;color:var(--ink)}
+.po-plan{list-style:none;padding:0 20px;flex:none}
+.po-plan li{height:28px;margin:0 -6px;padding:0 6px;border-radius:4px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink2)}
+.po-plan li.cur{background:var(--working-band);color:var(--ink);font-weight:600}
+.po-plan .g{width:22px;flex:none;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:var(--ink4)}
+.po-plan .g.ok{color:var(--working)}
+.po-plan .g.cur{color:var(--working)}
+.po-plan .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.po-plan .note{font-size:11px;color:var(--ink3);flex:none}
+.po-reports{display:flex;flex-wrap:wrap;gap:6px;padding:0 20px 12px;flex:none}
+.repchip{height:24px;padding:0 10px;border-radius:999px;background:var(--panel2);display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink)}
+.po-actions{margin-top:auto;flex:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:14px 20px 18px}
+.btn{height:36px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 12px;border-radius:6px;border:1px solid var(--line2);font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap}
+.btn .k{font-size:12px;font-weight:600;color:var(--ink3)}
+.btn.primary{border:0;background:linear-gradient(90deg,var(--accent2),var(--accent));color:var(--accent-ink)}
+.btn.primary .k{color:var(--accent-ink);opacity:.8}
+
+/* inbox */
+#screen-inbox .panel{flex:1;min-width:0;display:flex;min-height:0}
+.ib-left{width:520px;flex:none;display:flex;flex-direction:column;min-height:0;padding-right:12px}
+.ib-left .head{flex:none;display:flex;align-items:center;padding:12px 16px 6px}
+.ib-left .head b{font-family:var(--font-display);font-weight:700;font-size:20px;line-height:1;color:var(--ink)}
+.ib-chips{flex:none;display:flex;gap:6px;padding:0 16px 8px}
+.ibchip{height:26px;flex:none;padding:0 10px;border-radius:999px;background:var(--panel2);display:inline-flex;align-items:center;font-size:12px;font-weight:600;color:var(--ink2)}
+.ibchip.on{background:var(--select);color:var(--accent-ink)}
+.ib-list{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+.ib-sec{flex:none;display:flex;align-items:center;padding:10px 16px 4px;font-family:var(--font-display);font-weight:700;font-size:12px;letter-spacing:.04em;color:var(--ink3)}
+.ib-row{height:58px;flex:none;width:100%;display:flex;align-items:center;gap:10px;padding:0 16px;border-left:3px solid transparent}
+.ib-row.on{background:var(--panel3);border-left-color:var(--focus-kb)}
+.ib-row .body{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.ib-row .body b{max-width:100%;font-size:14px;font-weight:600;font-size:14px;color:var(--ink);line-height:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ib-row .body span{max-width:100%;font-size:12px;color:var(--ink3);line-height:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ib-row .t{flex:none;font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--ink2)}
+.ib-row .t.needs{color:var(--needs)}.ib-row .t.stall{color:var(--stall)}
+.ib-rep{height:52px;flex:none;width:100%;display:flex;align-items:center;gap:10px;padding:0 16px}
+.ib-rep .pg{width:22px;height:22px;border-radius:6px;background:var(--panel3);display:inline-flex;align-items:center;justify-content:center;flex:none;color:var(--done)}
+.ib-rep .body{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.ib-rep .body b{max-width:100%;font-size:14px;font-weight:600;color:var(--ink);line-height:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ib-rep .body span{max-width:100%;font-size:12px;color:var(--ink3);line-height:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ib-body{flex:1;min-width:0;display:flex;flex-direction:column;border-left:1px solid var(--line-soft)}
+.ib-body .head{padding:18px 20px 14px;border-bottom:1px solid var(--line-soft)}
+.ib-meta{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ink2);white-space:nowrap}
+.ib-meta b{font-weight:700;color:var(--ink2)}
+.ib-meta .dim{color:var(--ink3)}
+.ib-body h3{margin-top:8px;font-family:var(--font-display);font-weight:700;font-size:30px;line-height:1.1;color:var(--ink)}
+.ib-text{flex:1;min-height:0;padding:16px 20px;font-size:16px;line-height:1.6;color:var(--ink);max-width:660px}
+.ib-actions{flex:none;display:flex;align-items:center;gap:8px;padding:12px 20px}
+.ib-actions .btn{flex:none;padding:0 14px;gap:6px;justify-content:flex-start}
+
+/* staff */
+#screen-staff .panel{flex:1;min-width:0;display:flex;flex-direction:column}
+.st-head{flex:none;display:flex;align-items:center;gap:10px;padding:14px 18px 10px}
+.st-head b{font-family:var(--font-display);font-weight:700;font-size:20px;line-height:1;color:var(--ink)}
+.st-head span{font-size:12px;color:var(--ink3)}
+.st-cols{flex:none;display:flex;align-items:center;padding:0 12px 4px;font-size:12px;font-weight:600;color:var(--ink3)}
+.st-cols span{flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.w44{width:44px;flex:none}.w200{width:200px;flex:none}.w220{width:220px;flex:none}.w270{width:270px;flex:none}.w440{width:440px;flex:none}
+.st-rows{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.st-grp{flex:none;display:flex;align-items:center;padding:16px 12px 6px;font-size:13px;font-weight:700;color:var(--ink3)}
+.st-row{height:52px;flex:none;width:100%;display:flex;align-items:center;padding:0 12px;position:relative}
+.st-row.alt{background:var(--row-alt)}
+.st-row .nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.st-row .nm b{font-size:14px;font-weight:700;color:var(--ink);line-height:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.st-row .nm span{font-size:12px;color:var(--ink3);line-height:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.st-row .contract{width:200px;flex:none;font-size:13px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px}
+.usage{width:220px;flex:none;display:flex;flex-direction:column;gap:2px}
+.usage .bar{display:flex;align-items:center;gap:8px}
+.track{width:110px;height:6px;flex:none;border-radius:3px;background:var(--bar-track);overflow:hidden}
+.fill{display:block;height:100%;border-radius:3px;background:var(--bar)}
+.usage b{width:40px;flex:none;text-align:right;font-size:12px;font-weight:600;color:var(--ink)}
+.usage small{height:14px;font-size:11px;color:var(--ink3);line-height:14px;white-space:nowrap}
+.untracked{width:440px;flex:none;font-size:12px;color:var(--ink3)}
+.links{width:270px;flex:none;display:flex;align-items:center;gap:10px}
+.lnk{font-size:12px;font-weight:600;color:var(--link);text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+.radio{display:inline-block;width:14px;height:14px;flex:none;border-radius:50%;border:2px solid var(--ink3);position:relative;vertical-align:middle}
+.radio.on{border-color:var(--accent)}
+.radio.on::after{content:"";position:absolute;inset:2px;border-radius:50%;background:var(--accent)}
+.st-add{height:38px;flex:none;width:100%;display:flex;align-items:center;padding:0 12px;font-size:12px;font-weight:600;color:var(--ink2)}
+.st-start{height:52px;flex:none;width:100%;display:flex;align-items:center;padding:0 12px}
+.st-start .field{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.st-start .field b{font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--ink);line-height:18px}
+.st-start .field span{font-size:12px;color:var(--ink3)}
+.st-foot{height:24px;flex:none;width:100%;display:flex;align-items:center;padding:0 18px;font-size:11px;color:var(--ink3)}
+
+/* club */
+#screen-club .panel{flex:1;min-width:0;display:flex;flex-direction:column}
+.cl-head{flex:none;display:flex;align-items:center;gap:10px;padding:14px 18px 10px}
+.cl-head b{font-family:var(--font-display);font-weight:700;font-size:20px;line-height:1;color:var(--ink)}
+.cl-head span{font-size:12px;color:var(--ink3);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.headbtn{height:36px;flex:none;display:inline-flex;align-items:center;gap:7px;padding:0 12px;border-radius:6px;border:1px solid var(--line-soft);background:var(--panel2);color:var(--ink2);font-size:13px;font-weight:600}
+.clubgrid{flex:1;min-height:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:0 12px 12px;align-content:start;overflow:hidden}
+.ground{border-radius:10px;border:1px solid var(--line-soft);background:var(--panel2);overflow:hidden}
+.ground header{height:38px;display:flex;align-items:center;gap:8px;padding:0 12px;background:linear-gradient(180deg,var(--nav2),var(--nav))}
+.ground header b{min-width:0;font-family:var(--font-display);font-weight:700;font-size:18px;line-height:1;color:var(--nav-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ground header .chip2{margin-left:auto;height:20px;flex:none;padding:0 6px;border-radius:4px;background:var(--shade3);display:inline-flex;align-items:center;font-size:11px;font-weight:700;color:var(--veil-ink);white-space:nowrap}
+.prow{width:100%;height:34px;display:flex;align-items:center;gap:8px;padding:0 12px;position:relative;background:transparent;border:0;text-align:left;font-family:var(--font-body);color:var(--ink2)}
+.prow.alt{background:var(--row-alt)}
+.prow.shown{background:rgba(246,216,74,.08)}
+.prow.shown::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--focus-kb)}
+.pname{flex:1;min-width:0;display:flex;align-items:center;gap:6px;overflow:hidden;white-space:nowrap}
+.pname b{font-size:13px;font-weight:700;color:var(--ink);flex:none}
+.pname span{font-size:13px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis}
+.prow.shown .pname b,.prow.shown .pname span{color:var(--focus-kb)}
+.pills{flex:none;display:flex;align-items:center;gap:4px}
+.cp{height:20px;padding:0 6px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;line-height:1;white-space:nowrap}
+.cp.needs{background:var(--needs-fill);color:var(--paper)}
+.cp.stall{background:var(--stall);color:var(--bg)}
+.cp.work{background:rgba(54,210,107,.22);color:var(--working)}
+.cp.done{background:var(--panel3);color:var(--done)}
+.cp.shell{border:1px dashed var(--line2);color:var(--ink3);font-weight:600}
+
+/* ── live area ─────────────────────────────────────────────────────────── */
+#live{height:1042px;flex:none;padding:12px;display:flex;flex-direction:column;gap:8px;min-height:0}
+#tabs{height:40px;flex:none;display:flex;align-items:stretch;border-radius:10px;background:var(--panel2);overflow:hidden;padding-right:6px}
+.tab{height:100%;flex:none;display:flex;align-items:center;gap:7px;padding:0 14px;background:var(--term-bg);color:var(--ink);font-size:13px;font-weight:600;position:relative;white-space:nowrap}
+.tab::before{content:"";position:absolute;left:10px;right:10px;top:0;height:2px;border-radius:0 0 2px 2px;background:var(--accent)}
+.ag{width:16px;height:16px;flex:none;border-radius:4px;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-size:10px;font-weight:700}
+.tab .x{width:16px;height:16px;flex:none;border-radius:3px;display:grid;place-items:center;color:var(--ink3)}
+.tabadd{width:30px;height:30px;flex:none;align-self:center;display:grid;place-items:center;border-radius:4px;color:var(--ink2)}
+.liveicons{display:flex;align-items:center;align-self:center}
+.liveicons .iconbtn{color:var(--ink2)}
+#panes{flex:1;min-height:0;display:flex;gap:8px}
+.pane{flex:1;min-width:0;display:flex;flex-direction:column;border-radius:10px;background:var(--term-bg);overflow:hidden;border:1px solid var(--line)}
+.pane.focus{border-color:var(--focus-kb)}
+.ph{height:32px;flex:none;display:flex;align-items:center;gap:8px;padding:0 8px 0 12px;background:var(--panel2);border-bottom:1px solid var(--line);white-space:nowrap;overflow:hidden}
+.ph .badge{width:18px;height:18px;flex:none;border-radius:4px;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-size:10px;font-weight:700}
+.ph b{flex:none;max-width:260px;overflow:hidden;text-overflow:ellipsis;font-size:13px;font-weight:700;color:var(--ink)}
+.ph .path{min-width:0;max-width:360px;overflow:hidden;text-overflow:ellipsis;font-family:var(--font-mono);font-size:12px;color:var(--ink3)}
+.ph .tools{margin-left:auto;flex:none;display:flex;gap:2px}
+.ph .tool{width:26px;height:26px;display:grid;place-items:center;border-radius:4px;color:var(--ink2)}
+.term{flex:1;min-height:0;padding:12px 14px;font-family:var(--font-mono);font-size:13px;line-height:1.55;color:var(--term-ink);white-space:pre;overflow:hidden}
+.term .p{color:var(--term-dim)}
+.term .dot{color:var(--term-green)}
+.term .dim{color:var(--term-dim)}
+.term .ok{color:var(--term-green)}
+.term .warn{color:var(--term-pink)}
+.term .soft{color:var(--ink2)}
+.term .cursor{color:var(--term-ink)}
+.term-status{flex:none;margin-top:auto;padding:8px 14px;border-top:1px solid var(--line);font-family:var(--font-mono);font-size:11.5px;color:var(--term-dim);white-space:nowrap;overflow:hidden}
+</style></head><body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-left" viewBox="0 0 16 16"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-right" viewBox="0 0 16 16"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-caret" viewBox="0 0 10 10"><path d="m2 3.5 3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m10.5 10.5 3 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+  <symbol id="i-inbox" viewBox="0 0 18 18"><path d="M2.5 10.5 4.5 3.5h9l2 7v4h-13z M2.5 10.5h4l1 2h3l1-2h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 18 18"><circle cx="9" cy="9" r="2.6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M9 1.8v2.4M9 13.8v2.4M1.8 9h2.4M13.8 9h2.4M3.9 3.9l1.7 1.7M12.4 12.4l1.7 1.7M3.9 14.1l1.7-1.7M12.4 5.6l1.7-1.7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="i-chev2" viewBox="0 0 20 20"><path d="m4 4 6 6-6 6M10 4l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-x" viewBox="0 0 16 16"><path d="m4 4 8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+  <symbol id="i-split-r" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 3v10" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-split-d" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M2 8h12" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-zoom" viewBox="0 0 16 16"><path d="M3 6V3h3M13 6V3h-3M3 10v3h3M13 10v3h-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="i-page" viewBox="0 0 16 16"><path d="M3.5 2.5h6l3 3v8h-9z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+  <symbol id="i-files" viewBox="0 0 18 18"><path d="M3 2.5h7l4 4v9H3z M10 2.5v4h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+  <symbol id="i-diff" viewBox="0 0 18 18"><path d="M5 3v8 M2 7h6 M13 7v8 M10 13h6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+</svg>
+
+<div id="win">
+  <div class="lights"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div>
+
+  <header id="top">
+    <div style="display:flex;align-items:center;gap:6px">
+      <span class="navbtn"><svg width="14" height="14"><use href="#i-left"/></svg></span>
+      <span class="navbtn off"><svg width="14" height="14"><use href="#i-right"/></svg></span>
+    </div>
+    <div class="club-sw">
+      <img class="crest" src="../design/art/crest.png" alt="">
+      <div class="who"><b>ACME-WEB</b><small>Ground 2 of 6</small></div>
+      <svg class="caret" width="10" height="10"><use href="#i-caret"/></svg>
+    </div>
+    <nav class="menu">
+      <div class="mm on" data-menu="squad">SQUAD</div>
+      <div class="mm" data-menu="inbox">INBOX<span class="cnt">3</span></div>
+      <div class="mm" data-menu="staff">STAFF</div>
+      <div class="mm" data-menu="club">CLUB</div>
+    </nav>
+    <div class="grow"></div>
+    <div class="scout"><svg width="14" height="14" style="opacity:.8"><use href="#i-search"/></svg><span class="q">Scout</span></div>
+    <div style="display:flex;align-items:center;gap:2px">
+      <span class="iconbtn"><svg width="17" height="17"><use href="#i-inbox"/></svg><span class="badge">3</span></span>
+      <span class="iconbtn"><svg width="17" height="17"><use href="#i-gear"/></svg></span>
+    </div>
+    <div class="datebox">
+      <div><b>WED 11/11/2026</b><small>3 on the touchline</small></div>
+      <span class="clock">18:26</span>
+    </div>
+    <div class="continue">
+      <div><b>Continue</b><small>WEB-482 on the touchline</small></div>
+      <svg width="20" height="20"><use href="#i-chev2"/></svg>
+    </div>
+  </header>
+
+  <div id="sub">
+    <div class="subline" data-sub="squad">
+      <div class="crumb">Squad</div><i class="subdiv"></i>
+      <div class="stab on"><b>Overview</b></div>
+      <div class="stab">Touchline<span class="n needs">3</span></div>
+      <div class="stab">In possession<span class="n working">4</span></div>
+      <div class="stab">Full time<span class="n done">3</span></div>
+      <div class="grow"></div><span class="keysbtn">Keys <b>?</b></span>
+    </div>
+    <div class="subline" data-sub="inbox">
+      <div class="crumb">Inbox</div><i class="subdiv"></i>
+      <div class="stab on"><b>All</b></div>
+      <div class="stab">Touchline</div>
+      <div class="stab">Match reports</div>
+      <div class="grow"></div><span class="keysbtn">Keys <b>?</b></span>
+    </div>
+    <div class="subline" data-sub="staff">
+      <div class="crumb">Staff</div>
+      <div class="grow"></div><span class="keysbtn">Keys <b>?</b></span>
+    </div>
+    <div class="subline" data-sub="club">
+      <div class="crumb">Club</div>
+      <div class="grow"></div><span class="keysbtn">Keys <b>?</b></span>
+    </div>
+  </div>
+
+  <div id="screens">
+    <!-- ── squad ─────────────────────────────────────────────────────── -->
+    <section class="screen" id="screen-squad">
+      <div class="panel" id="squad-table">
+        <div class="sq-head">
+          <div class="title">SQUAD</div>
+          <span class="chip">Shape 3-4-3</span>
+          <div class="meta">10 in the squad across 6 grounds</div>
+          <div class="grow"></div>
+          <div class="hint">←→ select, ↩ watch, ⌫ sub off, ↑↓ phases</div>
+        </div>
+        <div class="cols">
+          <span style="width:3px"></span>
+          <span style="width:46px"></span>
+          <span style="width:30px;padding-right:10px;text-align:right">No</span>
+          <span style="width:96px">Ticket</span>
+          <span style="flex:1;min-width:0">Brief, commentary</span>
+          <span style="width:70px">Nat</span>
+          <span style="width:150px">Ground</span>
+          <span style="width:34px">Ph</span>
+          <span style="width:78px">Mins</span>
+          <span style="width:128px">Game plan</span>
+          <span style="width:52px">Rpt</span>
+          <span style="width:60px">PR</span>
+        </div>
+        <div class="rows">
+          <div class="grp"><i style="background:var(--needs)"></i><b>Touchline</b><em>3</em><span>waiting on your instructions, longest first</span></div>
+
+          <div class="r sel needs">
+            <span class="lit"></span>
+            <span class="c-si"><span class="sq needs">!</span></span>
+            <span class="c-no">1</span>
+            <span class="c-ticket">WEB-482</span>
+            <span class="c-brief"><b>checkout-retry-482</b><span>Should the retry cap be 3 or 5 attempts?</span></span>
+            <span class="c-nat"><span class="nat cld"><i></i>CLD</span></span>
+            <span class="c-ground">api</span>
+            <span class="c-ph">3</span>
+            <span class="c-mins"><b>41'</b></span>
+            <span class="c-plan"><span class="plan"><span class="segs"><i class="d"></i><i class="d"></i><i class="d"></i><i class="c"></i><i class="n"></i></span><b>3/5</b></span></span>
+            <span class="c-rpt"><span class="rpt"><svg width="11" height="11" style="color:var(--ink2)"><use href="#i-page"/></svg>1</span></span>
+            <span class="c-pr">—</span>
+          </div>
+
+          <div class="r needs alt">
+            <span class="lit"></span>
+            <span class="c-si"><span class="sq needs">!</span></span>
+            <span class="c-no">2</span>
+            <span class="c-ticket">WEB-477</span>
+            <span class="c-brief"><b>search-reindex-477</b><span>Migration is ready. OK to run it on staging?</span></span>
+            <span class="c-nat"><span class="nat cdx"><i></i>CDX</span></span>
+            <span class="c-ground">search</span>
+            <span class="c-ph">2</span>
+            <span class="c-mins"><b>18'</b></span>
+            <span class="c-plan"><span class="plan"><span class="segs"><i class="d"></i><i class="d"></i><i class="c"></i><i class="n"></i></span><b>2/4</b></span></span>
+            <span class="c-rpt"></span>
+            <span class="c-pr">#1281</span>
+          </div>
+
+          <div class="r stall">
+            <span class="lit"></span>
+            <span class="c-si"><span class="sq stall">+</span></span>
+            <span class="c-no">3</span>
+            <span class="c-ticket">—</span>
+            <span class="c-brief"><b>docs-site</b><span>No new activity for 26 minutes. Check whether it is stuck</span></span>
+            <span class="c-nat"><span class="nat cld"><i></i>CLD</span></span>
+            <span class="c-ground">docs</span>
+            <span class="c-ph">—</span>
+            <span class="c-mins"><b>26'</b><small>quiet</small></span>
+            <span class="c-plan"></span>
+            <span class="c-rpt"></span>
+            <span class="c-pr">—</span>
+          </div>
+
+          <div class="grp"><i style="background:var(--working)"></i><b>In possession</b><em>4</em><span>oldest first</span></div>
+
+          <div class="r working alt">
+            <span class="lit"></span>
+            <span class="c-si"><span class="sq working"><span class="spin"></span></span></span>
+            <span class="c-no">4</span>
+            <span class="c-ticket">WEB-490</span>
+            <span class="c-brief"><b>billing-webhooks-490</b><span class="now">Running the integration suite</span></span>
+            <span class="c-nat"><span class="nat cld"><i></i>CLD</span></span>
+            <span class="c-ground">api</span>
+            <span class="c-ph">4</span>
+            <span class="c-mins"><b>52'</b></span>
+            <span class="c-plan"><span class="plan"><span class="segs"><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="c"></i><i class="n"></i></span><b>4/6</b></span></span>
+            <span class="c-rpt"></span>
+            <span class="c-pr">#1284</span>
+          </div>
+
+          <div class="r working">
+            <span class="lit"></span>
+            <span class="c-si"><span class="sq working"><span class="spin"></span></span></span>
+            <span class="c-no">5</span>
+            <span class="c-ticket">WEB-468</span>
+            <span class="c-brief"><b>image-cdn-468</b><span class="now">Rewriting the cache headers</span></span>
+            <span class="c-nat"><span class="nat gem"><i></i>GEM</span></span>
+            <span class="c-ground">edge</span>
+            <span class="c-ph">1</span>
+            <span class="c-mins"><b>33'</b></span>
+            <span class="c-plan"><span class="plan"><span class="segs"><i class="d"></i><i class="c"></i><i class="n"></i></span><b>1/3</b></span></span>
+            <span class="c-rpt"></span>
+            <span class="c-pr">—</span>
+          </div>
+
+          <div class="r working alt">
+            <span class="lit"></span>
+            <span class="c-si"><span class="sq working"><span class="spin"></span></span></span>
+            <span class="c-no">6</span>
+            <span class="c-ticket">—</span>
+            <span class="c-brief"><b>release-notes</b><span class="mute">Waiting on background tasks</span></span>
+            <span class="c-nat"><span class="nat cld"><i></i>CLD</span></span>
+            <span class="c-ground">docs</span>
+            <span class="c-ph">—</span>
+            <span class="c-mins"><b>12'</b></span>
+            <span class="c-plan"></span>
+            <span class="c-rpt"></span>
+            <span class="c-pr">—</span>
+          </div>
+
+          <div class="r working">
+            <span class="lit"></span>
+            <span class="c-si"><span class="sq working"><span class="spin"></span></span></span>
+            <span class="c-no">7</span>
+            <span class="c-ticket">WEB-471</span>
+            <span class="c-brief"><b>auth-session-471</b><span class="now">Bisecting the flaky login test</span></span>
+            <span class="c-nat"><span class="nat cdx"><i></i>CDX</span></span>
+            <span class="c-ground">web</span>
+            <span class="c-ph">2</span>
+            <span class="c-mins"><b>7'</b></span>
+            <span class="c-plan"><span class="plan"><span class="segs"><i class="d"></i><i class="d"></i><i class="c"></i><i class="n"></i><i class="n"></i></span><b>2/5</b></span></span>
+            <span class="c-rpt"></span>
+            <span class="c-pr">#1279</span>
+          </div>
+
+          <div class="grp"><i style="background:var(--done)"></i><b>Full time</b><em>3</em><span>newest first</span></div>
+
+          <div class="r done alt">
+            <span class="lit"></span>
+            <span class="c-si"><span class="sq done">✓</span></span>
+            <span class="c-no">8</span>
+            <span class="c-ticket">WEB-455</span>
+            <span class="c-brief"><b>onboarding-copy-455</b><span>Done. Copy updated on all four steps.</span></span>
+            <span class="c-nat"><span class="nat cld"><i></i>CLD</span></span>
+            <span class="c-ground">web</span>
+            <span class="c-ph">—</span>
+            <span class="c-mins"><b>now</b></span>
+            <span class="c-plan"></span>
+            <span class="c-rpt"></span>
+            <span class="c-pr"></span>
+          </div>
+
+          <div class="r done">
+            <span class="lit"></span>
+            <span class="c-si"><span class="sq done">✓</span></span>
+            <span class="c-no">9</span>
+            <span class="c-ticket">WEB-461</span>
+            <span class="c-brief"><b>metrics-export-461</b><span>Exporter merged; dashboard link is in the PR.</span></span>
+            <span class="c-nat"><span class="nat cld"><i></i>CLD</span></span>
+            <span class="c-ground">api</span>
+            <span class="c-ph">1</span>
+            <span class="c-mins"><b>1h</b></span>
+            <span class="c-plan"></span>
+            <span class="c-rpt"><span class="rpt"><svg width="11" height="11" style="color:var(--ink2)"><use href="#i-page"/></svg>1</span></span>
+            <span class="c-pr">#1271</span>
+          </div>
+
+          <div class="r done alt">
+            <span class="lit"></span>
+            <span class="c-si"><span class="sq done">✓</span></span>
+            <span class="c-no">10</span>
+            <span class="c-ticket">—</span>
+            <span class="c-brief"><b>infra-notes</b><span>Runbook saved to docs/runbook.md.</span></span>
+            <span class="c-nat"><span class="nat gem"><i></i>GEM</span></span>
+            <span class="c-ground">infra</span>
+            <span class="c-ph">—</span>
+            <span class="c-mins"><b>2h</b></span>
+            <span class="c-plan"></span>
+            <span class="c-rpt"></span>
+            <span class="c-pr"></span>
+          </div>
+        </div>
+      </div>
+
+      <aside class="panel" id="overview">
+        <div class="po-head">
+          <h3>WEB-482</h3>
+          <p>checkout-retry-482</p>
+          <div class="tags"><span>Touchline</span><span><i></i>Claude</span><span>api</span></div>
+        </div>
+        <dl class="po-stats">
+          <div><dt>Minutes</dt><dd>41'</dd></div>
+          <div><dt>Added time</dt><dd>~6'</dd></div>
+          <div><dt>Game plan</dt><dd>3/5</dd></div>
+          <div><dt>Match reports</dt><dd>1</dd></div>
+        </dl>
+        <div class="po-sec"><h4>Commentary</h4></div>
+        <div class="po-word">Should the retry cap be 3 or 5 attempts? Five covers the payment provider's 30-second outage window.</div>
+        <div class="po-sec"><h4>Game plan</h4><span>phase 3 of 5, ↑↓</span></div>
+        <ul class="po-plan">
+          <li><span class="g ok">✓</span><span class="t">Reproduce the double charge</span></li>
+          <li><span class="g ok">✓</span><span class="t">Add idempotency keys</span></li>
+          <li class="cur"><span class="g cur">●</span><span class="t">Pick a retry cap</span></li>
+          <li><span class="g">○</span><span class="t">Load test the retry path</span></li>
+          <li><span class="g">○</span><span class="t">Open the PR</span></li>
+        </ul>
+        <div class="po-sec"><h4>Match reports</h4></div>
+        <div class="po-reports"><span class="repchip"><svg width="11" height="11" style="color:var(--link)"><use href="#i-page"/></svg>retry-design.md</span></div>
+        <div class="po-actions">
+          <div class="btn primary"><span>Watch live</span><span class="k">↩</span></div>
+          <div class="btn"><span>Dossier</span><span class="k">⌘↩</span></div>
+          <div class="btn"><span>Match report</span><span class="k">⇧↩</span></div>
+          <div class="btn"><span>Sub off</span><span class="k">⌫</span></div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- ── inbox ─────────────────────────────────────────────────────── -->
+    <section class="screen" id="screen-inbox">
+      <div class="panel">
+        <div class="ib-left">
+          <div class="head"><b>INBOX</b></div>
+          <div class="ib-chips"><span class="ibchip on">All</span><span class="ibchip">Touchline (3)</span><span class="ibchip">Match reports (2)</span></div>
+          <div class="ib-list">
+            <div class="ib-sec">TOUCHLINE</div>
+            <div class="ib-row on">
+              <span class="sq needs">!</span>
+              <span class="body"><b>checkout-retry-482</b><span>Should the retry cap be 3 or 5 attempts?</span></span>
+              <span class="t needs">41'</span>
+            </div>
+            <div class="ib-row">
+              <span class="sq needs">!</span>
+              <span class="body"><b>search-reindex-477</b><span>Migration is ready. OK to run it on staging?</span></span>
+              <span class="t needs">18'</span>
+            </div>
+            <div class="ib-row">
+              <span class="sq stall">+</span>
+              <span class="body"><b>docs-site</b><span>No new activity for 26 minutes. Check whether it is stuck</span></span>
+              <span class="t stall">26'</span>
+            </div>
+            <div class="ib-sec">MATCH REPORTS</div>
+            <div class="ib-rep">
+              <span class="pg"><svg width="11" height="11"><use href="#i-page"/></svg></span>
+              <span class="body"><b>retry-design.md — checkout-retry-482</b><span>Match report</span></span>
+            </div>
+            <div class="ib-rep">
+              <span class="pg"><svg width="11" height="11"><use href="#i-page"/></svg></span>
+              <span class="body"><b>Q4 metrics export — metrics-export-461</b><span>Match report</span></span>
+            </div>
+          </div>
+        </div>
+        <div class="ib-body">
+          <div class="head">
+            <div class="ib-meta">
+              <span class="sq needs">!</span>
+              <b>checkout-retry-482</b>
+              <span class="nat cld"><i></i>CLD</span>
+              <span>api</span>
+              <span class="dim">on the touchline for 41 min</span>
+            </div>
+            <h3>checkout-retry-482</h3>
+          </div>
+          <div class="ib-text">Should the retry cap be 3 or 5 attempts? Five covers the payment provider's 30-second outage window, but it doubles the worst-case wait at checkout.</div>
+          <div class="ib-actions">
+            <div class="btn primary"><span>Give instructions</span><span class="k">↩</span></div>
+            <div class="btn"><span>Dossier</span><span class="k">⌘↩</span></div>
+            <div class="btn"><span>Match report</span><span class="k">⇧↩</span></div>
+            <div class="grow"></div>
+            <div class="btn"><span>Next touchline call</span><span class="k">Space</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── staff ─────────────────────────────────────────────────────── -->
+    <section class="screen" id="screen-staff">
+      <div class="panel">
+        <div class="st-head">
+          <b>BACKROOM STAFF</b>
+          <span>agents, logins and their wage budgets</span>
+          <div class="grow"></div>
+          <span>↑↓ move, ↩ start, o debut in a new pane</span>
+        </div>
+        <div class="st-cols">
+          <span class="w44">Starts</span><span style="flex:1;min-width:0">Name</span>
+          <span class="w200">Contract</span><span class="w220">5h wage budget</span><span class="w220">Week wage budget</span><span class="w270"></span>
+        </div>
+        <div class="st-rows">
+          <div class="st-grp">Claude</div>
+          <div class="st-row alt">
+            <span class="w44"><span class="radio on"></span></span>
+            <span class="nm"><b>work</b><span>alex@example.com, this pane</span></span>
+            <span class="contract">New sessions sign here</span>
+            <span class="usage"><span class="bar"><span class="track"><span class="fill" style="width:34%"></span></span><b>34%</b></span><small></small></span>
+            <span class="usage"><span class="bar"><span class="track"><span class="fill" style="width:12%"></span></span><b>12%</b></span><small>resets Fri</small></span>
+            <span class="links"><span class="lnk">new pane</span><span class="lnk">rename</span></span>
+          </div>
+          <div class="st-row">
+            <span class="w44"><span class="radio"></span></span>
+            <span class="nm"><b>personal</b><span>alex.home@example.com</span></span>
+            <span class="contract"></span>
+            <span class="usage"><span class="bar"><span class="track"><span class="fill" style="width:0%"></span></span><b>0%</b></span><small></small></span>
+            <span class="usage"><span class="bar"><span class="track"><span class="fill" style="width:3%"></span></span><b>3%</b></span><small></small></span>
+            <span class="links"><span class="lnk">new pane</span><span class="lnk">rename</span><span class="lnk">transfer this session here</span></span>
+          </div>
+          <div class="st-add"><span class="w44"></span>+ Sign a Claude account</div>
+
+          <div class="st-grp">Codex</div>
+          <div class="st-row alt">
+            <span class="w44"><span class="radio on"></span></span>
+            <span class="nm"><b>System default</b><span>~/.codex</span></span>
+            <span class="contract">New Codex sessions</span>
+            <span class="usage"><span class="bar"><span class="track"><span class="fill" style="width:0%"></span></span><b>0%</b></span><small></small></span>
+            <span class="usage"><span class="bar"><span class="track"><span class="fill" style="width:11%"></span></span><b>11%</b></span><small>resets Mon</small></span>
+            <span class="links"><span class="lnk">new pane</span><span class="lnk">rename</span></span>
+          </div>
+          <div class="st-add"><span class="w44"></span>+ Sign a Codex login</div>
+
+          <div class="st-grp">Other agents</div>
+          <div class="st-row">
+            <span class="w44"></span>
+            <span class="nm"><b>Gemini</b><span></span></span>
+            <span class="contract">Launches in a new pane</span>
+            <span class="untracked">usage not tracked</span>
+            <span class="links"><span class="lnk">new pane</span></span>
+          </div>
+
+          <div class="st-grp">Custom commands</div>
+          <div class="st-row alt">
+            <span class="w44"></span>
+            <span class="nm"><b>Review bot</b><span>claude --agent reviewer</span></span>
+            <span class="contract">Resumable</span>
+            <span class="untracked">usage not tracked</span>
+            <span class="links"><span class="lnk">new pane</span><span class="lnk">edit</span></span>
+          </div>
+          <div class="st-add"><span class="w44"></span>+ Add custom command</div>
+
+          <div class="st-grp">Start command</div>
+          <div class="st-start">
+            <span class="w44"></span>
+            <span class="field"><b>claude</b><span>runs through your shell when it is not claude</span></span>
+            <span class="w200"></span><span class="w220"></span><span class="w220"></span><span class="w270"></span>
+          </div>
+        </div>
+        <div class="st-foot"></div>
+      </div>
+    </section>
+
+    <!-- ── club ──────────────────────────────────────────────────────── -->
+    <section class="screen" id="screen-club">
+      <div class="panel">
+        <div class="cl-head">
+          <b>CLUB</b>
+          <span>every repository is a ground, every space a pitch in it</span>
+          <div class="grow"></div>
+          <span class="headbtn"><svg width="14" height="14"><use href="#i-plus"/></svg>New space</span>
+          <span class="headbtn"><svg width="14" height="14"><use href="#i-gear"/></svg>Settings</span>
+        </div>
+        <div class="clubgrid">
+          <div class="ground">
+            <header><b>acme-web</b><span class="chip2">home pitch first</span></header>
+            <button class="prow"><span class="pname"><b>base</b><span>acme-web</span></span><span class="pills"><span class="cp done">✓ 1</span></span></button>
+            <button class="prow alt"><span class="pname"><b>WEB-482</b><span>api</span></span><span class="pills"><span class="cp needs">! 1</span></span></button>
+            <button class="prow"><span class="pname"><b>WEB-490</b><span>api</span></span><span class="pills"><span class="cp work"><span class="spin s"></span>1</span></span></button>
+            <button class="prow alt"><span class="pname"><b>WEB-471</b><span>web</span></span><span class="pills"><span class="cp work"><span class="spin s"></span>1</span></span></button>
+            <button class="prow"><span class="pname"><b>WEB-455</b><span>web</span></span><span class="pills"><span class="cp done">✓ 1</span></span></button>
+            <button class="prow alt"><span class="pname"><b>WEB-461</b><span>api</span></span><span class="pills"><span class="cp done">✓ 1</span></span></button>
+          </div>
+          <div class="ground">
+            <header><b>search</b></header>
+            <button class="prow"><span class="pname"><b>base</b><span>search</span></span><span class="pills"></span></button>
+            <button class="prow alt"><span class="pname"><b>WEB-477</b><span>search</span></span><span class="pills"><span class="cp needs">! 1</span></span></button>
+          </div>
+          <div class="ground">
+            <header><b>edge-cdn</b></header>
+            <button class="prow"><span class="pname"><b>base</b><span>edge-cdn</span></span><span class="pills"></span></button>
+            <button class="prow alt"><span class="pname"><b>WEB-468</b><span>edge</span></span><span class="pills"><span class="cp work"><span class="spin s"></span>1</span></span></button>
+          </div>
+          <div class="ground">
+            <header><b>docs-site</b></header>
+            <button class="prow shown"><span class="pname"><b>base</b><span>docs-site</span></span><span class="pills"><span class="cp needs">! 1</span><span class="cp work"><span class="spin s"></span>1</span></span></button>
+          </div>
+          <div class="ground">
+            <header><b>infra</b></header>
+            <button class="prow"><span class="pname"><b>base</b><span>infra</span></span><span class="pills"><span class="cp done">✓ 1</span></span></button>
+            <button class="prow alt"><span class="pname"><b>scratch</b></span><span class="pills"><span class="cp shell">shell</span></span></button>
+          </div>
+          <div class="ground">
+            <header><b>design-system</b></header>
+            <button class="prow"><span class="pname"><b>base</b><span>design-system</span></span><span class="pills"><span class="cp shell">shell</span></span></button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="live">
+    <div id="tabs">
+      <div class="tab"><span class="ag">C</span>checkout-retry-482<span class="x"><svg width="10" height="10"><use href="#i-x"/></svg></span></div>
+      <div class="tabadd"><svg width="14" height="14"><use href="#i-plus"/></svg></div>
+      <div class="grow"></div>
+      <div class="liveicons">
+        <span class="iconbtn"><svg width="17" height="17"><use href="#i-files"/></svg></span>
+        <span class="iconbtn"><svg width="17" height="17"><use href="#i-diff"/></svg></span>
+      </div>
+    </div>
+    <div id="panes">
+      <div class="pane">
+        <div class="ph">
+          <span class="badge">C</span><b>Claude Code</b><span class="path">~/acme-web/api</span>
+          <span class="tools">
+            <span class="tool"><svg width="14" height="14"><use href="#i-split-r"/></svg></span>
+            <span class="tool"><svg width="14" height="14"><use href="#i-split-d"/></svg></span>
+            <span class="tool"><svg width="14" height="14"><use href="#i-zoom"/></svg></span>
+            <span class="tool"><svg width="14" height="14"><use href="#i-x"/></svg></span>
+          </span>
+        </div>
+        <div class="term"><span class="p">&gt;</span> Customers report a double charge after a slow checkout.
+
+<span class="dot">●</span> Search<span class="dim">(pattern: "chargeCard", path: src/)</span>
+  <span class="dim">⎿ Found 6 files</span>
+<span class="dot">●</span> Read <span class="dim">src/checkout/submit.ts</span>
+<span class="dot">●</span> Read <span class="dim">logs/2026-11-10-checkout.log</span>
+
+<span class="dot">●</span> Both charges in the log share one cart and arrive
+  31 seconds apart. The first request timed out on our
+  side at 30 s, but the provider finished it at 30.4 s.
+
+<span class="dot">●</span> Bash<span class="dim">(npm run repro -- --latency 31000)</span>
+  <span class="dim">⎿</span> <span class="warn">charged twice: ch_1Q8x, ch_1Q8y</span>
+
+<span class="p">&gt;</span> The double charge comes from the retry loop. Can you fix it?
+
+<span class="dot">●</span> Read <span class="dim">src/payments/retry.ts</span>
+<span class="dot">●</span> Read <span class="dim">src/payments/provider.ts</span>
+
+<span class="dot">●</span> The loop retries after a timeout even when the provider
+  already accepted the charge. I added an idempotency key
+  per checkout, so a retried request reuses the first charge.
+
+<span class="dot">●</span> Update<span class="dim">(src/payments/retry.ts)</span>
+  <span class="dim">⎿ Updated with 18 additions and 4 removals</span>
+
+<span class="dot">●</span> Bash<span class="dim">(npm test -- payments)</span>
+  <span class="dim">⎿</span> <span class="ok">42 passed, 0 failed</span>
+
+  <span class="soft">Should the retry cap be 3 or 5 attempts? Five covers the</span>
+  <span class="soft">provider's 30-second outage window.</span>
+
+<span class="p">&gt;</span> <span class="cursor">_</span></div>
+        <div class="term-status">main · ctx 21% · 41m</div>
+      </div>
+      <div class="pane focus">
+        <div class="ph">
+          <span class="badge">C</span><b>Claude Code</b><span class="path">~/acme-web/search</span>
+          <span class="tools">
+            <span class="tool"><svg width="14" height="14"><use href="#i-split-r"/></svg></span>
+            <span class="tool"><svg width="14" height="14"><use href="#i-split-d"/></svg></span>
+            <span class="tool"><svg width="14" height="14"><use href="#i-zoom"/></svg></span>
+            <span class="tool"><svg width="14" height="14"><use href="#i-x"/></svg></span>
+          </span>
+        </div>
+        <div class="term"><span class="p">&gt;</span> Search misses results for hyphenated product names.
+
+<span class="dot">●</span> Read <span class="dim">src/search/tokenizer.ts</span>
+<span class="dot">●</span> Read <span class="dim">src/search/index.ts</span>
+
+<span class="dot">●</span> The tokenizer splits "wi-fi" into "wi" and "fi", but
+  queries keep the hyphen, so neither side matches. The new
+  tokenizer indexes both forms.
+
+<span class="dot">●</span> Update<span class="dim">(src/search/tokenizer.ts)</span>
+  <span class="dim">⎿ Updated with 27 additions and 9 removals</span>
+<span class="dot">●</span> Bash<span class="dim">(npm test -- search)</span>
+  <span class="dim">⎿</span> <span class="ok">118 passed, 0 failed</span>
+
+<span class="dot">●</span> Existing documents need a reindex to pick it up.
+
+<span class="p">&gt;</span> Reindex search with the new tokenizer
+
+<span class="dot">●</span> Write<span class="dim">(migrations/0042_reindex.sql)</span>
+<span class="dot">●</span> Bash<span class="dim">(npm run migrate:dry)</span>
+  <span class="dim">⎿</span> 1,204,388 rows would be rewritten (≈ 6 min)
+
+  <span class="soft">Migration is ready. OK to run it on staging?</span>
+
+<span class="p">&gt;</span> <span class="cursor">_</span></div>
+        <div class="term-status">main · ctx 9% · 18m</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SCREENS = ["squad", "inbox", "staff", "club"];
+window.setScreen = function (id) {
+  const screen = SCREENS.includes(id) ? id : "squad";
+  for (const el of document.querySelectorAll(".screen")) el.style.display = el.id === `screen-${screen}` ? "flex" : "none";
+  for (const el of document.querySelectorAll(".mm")) el.classList.toggle("on", el.dataset.menu === screen);
+  for (const el of document.querySelectorAll(".subline")) el.style.display = el.dataset.sub === screen ? "flex" : "none";
+};
+setScreen("squad");
+</script>
+</body></html>

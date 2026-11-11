@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="FM27-style Herdr layout: Squad, Inbox, Staff and Club screens over a live terminal.">
+<title>FM27 Herdr Layout</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="./fm.css">
+<link rel="stylesheet" href="./fm27.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-left" viewBox="0 0 16 16"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-right" viewBox="0 0 16 16"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-caret" viewBox="0 0 10 10"><path d="m2 3.5 3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m10.5 10.5 3 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+  <symbol id="i-inbox" viewBox="0 0 18 18"><path d="M2.5 10.5 4.5 3.5h9l2 7v4h-13z M2.5 10.5h4l1 2h3l1-2h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+  <symbol id="i-files" viewBox="0 0 18 18"><path d="M3 2.5h7l4 4v9H3z M10 2.5v4h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+  <symbol id="i-diff" viewBox="0 0 18 18"><path d="M5 3v8 M2 7h6 M13 7v8 M10 13h6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 18 18"><circle cx="9" cy="9" r="2.6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M9 1.8v2.4M9 13.8v2.4M1.8 9h2.4M13.8 9h2.4M3.9 3.9l1.7 1.7M12.4 12.4l1.7 1.7M3.9 14.1l1.7-1.7M12.4 5.6l1.7-1.7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="i-chev2" viewBox="0 0 20 20"><path d="m4 4 6 6-6 6M10 4l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-branch" viewBox="0 0 12 12"><circle cx="3" cy="2.5" r="1.4" fill="none" stroke="currentColor"/><circle cx="3" cy="9.5" r="1.4" fill="none" stroke="currentColor"/><circle cx="9" cy="4" r="1.4" fill="none" stroke="currentColor"/><path d="M3 4v4M9 5.4c0 2-3 2-5.6 3" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-x" viewBox="0 0 16 16"><path d="m4 4 8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+  <symbol id="i-split-r" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 3v10" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-split-d" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M2 8h12" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-zoom" viewBox="0 0 16 16"><path d="M3 6V3h3M13 6V3h-3M3 10v3h3M13 10v3h-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 18 18"><path d="M9 2.5a4 4 0 0 0-4 4v3l-1.5 3h11L13 9.5v-3a4 4 0 0 0-4-4zM7.5 14.5a1.5 1.5 0 0 0 3 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+  <symbol id="i-run" viewBox="0 0 18 18"><path d="M4 9a5 5 0 1 0 1.5-3.5M4 3v3h3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-check" viewBox="0 0 18 18"><path d="m4 9.5 3 3 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M6 3.5V6l1.7 1" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></symbol>
+  <symbol id="i-link" viewBox="0 0 16 16"><path d="M6.5 9.5 9.5 6.5M7 4.5l1.2-1.2a2.8 2.8 0 0 1 4 4L11 8.5M9 11.5l-1.2 1.2a2.8 2.8 0 0 1-4-4L5 7.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="i-list" viewBox="0 0 16 16"><path d="M5 4h8M5 8h8M5 12h8M2.5 4h.01M2.5 8h.01M2.5 12h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+  <symbol id="i-pr" viewBox="0 0 16 16"><circle cx="4" cy="3.5" r="1.6" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="4" cy="12.5" r="1.6" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="12" cy="12.5" r="1.6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M4 5v6M12 11V6.5a2 2 0 0 0-2-2H7.5" fill="none" stroke="currentColor" stroke-width="1.3"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 16 16"><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+  <symbol id="i-page" viewBox="0 0 16 16"><path d="M3.5 2.5h6l3 3v8h-9z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 16 16"><rect x="5" y="5" width="8" height="8" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3 10.5V3h7.5" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+</svg>
+
+<main class="doc">
+  <h1>FM27 Herdr 레이아웃 시안</h1>
+  <p class="lede">chiikawa-cards 에서는 할 수 있는 일만 가져왔다. 화면은 FM27 처럼 상단 메뉴로 고르는 네 개의 화면(Squad, Inbox, Staff, Club)이고, 터미널은 그 아래에 늘 있다. 캐릭터와 장면은 없다. 창은 1680 × 1860, 세션 이름과 수치는 예시다.</p>
+  <div class="zoombar" role="group" aria-label="Zoom"><button type="button" data-z="0.5">50%</button><button type="button" data-z="0.62" aria-pressed="true">62%</button><button type="button" data-z="1">100%</button></div>
+  <div class="frame-wrap" id="fw"><div class="fmwin" role="img" aria-label="Herdr window, Squad screen"><header class="top">
+      <div class="lights"><i></i><i></i><i></i></div>
+      <button class="navbtn" type="button" title="Back · ⌘["><svg aria-hidden="true"><use href="#i-left"/></svg></button>
+      <button class="navbtn" type="button" title="Forward · ⌘]"><svg aria-hidden="true"><use href="#i-right"/></svg></button>
+      <button class="club-sw" type="button" title="Switch ground"><img class="crest" src="./art/crest.png" alt=""><span><b>docs</b><small>Ground 3 of 9</small></span><svg aria-hidden="true" class="caret"><use href="#i-caret"/></svg></button>
+      <nav class="menu-main" aria-label="Screens"><button class="mm" aria-current="page">Squad<svg aria-hidden="true" class="caret"><use href="#i-caret"/></svg></button><button class="mm">Inbox<span class="cnt">3</span></button><button class="mm">Staff<svg aria-hidden="true" class="caret"><use href="#i-caret"/></svg></button><button class="mm">Club<svg aria-hidden="true" class="caret"><use href="#i-caret"/></svg></button></nav>
+      <span class="grow"></span>
+      <div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span>Scout</span></div>
+      <button class="iconbtn" type="button" title="3 reports to read · Tab"><svg aria-hidden="true"><use href="#i-inbox"/></svg><span class="badge">3</span></button>
+      <button class="iconbtn" type="button" title="Settings"><svg aria-hidden="true"><use href="#i-gear"/></svg></button>
+      <div class="datebox"><div><b>WED 11/11/2026</b><span>3 on the touchline</span></div><span class="clock">16:05</span></div>
+      <button class="continue" type="button" title="Go to the longest touchline call, Space"><span>Continue<small>WEB-1495 on the touchline, 14 min</small></span><svg aria-hidden="true"><use href="#i-chev2"/></svg></button>
+    </header><div class="sub"><div class="crumb"><b>Squad</b></div><button class="subtab" aria-pressed="true">Overview</button><button class="subtab" aria-pressed="false">Touchline <span class="n needs">3</span></button><button class="subtab" aria-pressed="false">In possession <span class="n working">4</span></button><button class="subtab" aria-pressed="false">Full time <span class="n done">8</span></button><div class="grow"></div><div class="notice">Subbed off WEB-1402 <button type="button">Undo ⌘Z</button></div><button class="quick" type="button">Keys <kbd>?</kbd></button></div><section class="screen">
+      <div class="panel">
+        <div class="ph"><h3>Squad</h3><span class="shape-chip">Shape 3-4-8</span><span class="meta">15 in the squad across 9 grounds</span><span class="grow"></span><span class="meta">←→ select, ↩ watch, ⌫ sub off, ↑↓ phases</span></div>
+        <table class="squadtbl">
+          <colgroup><col style="width:46px"><col style="width:30px"><col style="width:96px"><col><col style="width:70px"><col style="width:150px"><col style="width:34px"><col style="width:78px"><col style="width:128px"><col style="width:52px"><col style="width:60px"></colgroup>
+          <thead><tr><th></th><th>No</th><th>Ticket</th><th>Brief, commentary</th><th>Nat</th><th>Ground</th><th>Ph</th><th>Mins</th><th>Game plan</th><th>Rpt</th><th>PR</th></tr></thead>
+          <tbody><tr class="grp needs"><td colspan="11">Touchline 3<span>waiting on your instructions, longest first</span></td></tr>
+<tr class="r needs sel-mouse"><td><span class="si needs">!</span></td><td class="no">1</td><td class="tk">WEB-1495</td><td class="tp"><b>운영 DDL 87 적용 확인 후 배포 재개</b><span>DDL 87 을 운영 DB 에 적용해 주시면 배포를 이어갈게요.</span></td><td><span class="nat cld"><i></i>CLD</span></td><td>shop-api</td><td>2</td><td class="tm">14'</td><td><span class="cond "><span class="segs"><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i></i><i></i></span><b>4/6</b></span></td><td><span class="rep"><svg aria-hidden="true"><use href="#i-page"/></svg>1</span></td><td>#4812</td></tr>
+<tr class="r needs"><td><span class="si needs">!</span></td><td class="no">2</td><td class="tk">WEB-1518</td><td class="tp"><b>FAQ 초안 검수 범위 질문</b><span>정책 문서와 겹치는 9건을 제외할지 결정이 필요해요.</span></td><td><span class="nat cdx"><i></i>CDX</span></td><td>docs</td><td>1</td><td class="tm">3'</td><td></td><td></td><td></td></tr>
+<tr class="r stall"><td><span class="si stall">+</span></td><td class="no">3</td><td class="tk">WEB-1021</td><td class="tp"><b>스테이징 회귀 결과 수집</b><span>10분째 조용해요. ⌫ 로 10분 쉬게 하기.</span></td><td><span class="nat cld"><i></i>CLD</span></td><td>shop-api</td><td>5</td><td class="tm">12'<small>quiet</small></td><td><span class="cond stale"><span class="segs"><i class="d"></i><i class="d"></i><i class="n"></i><i></i><i></i></span><b>2/5</b></span></td><td></td><td></td></tr>
+<tr class="grp working"><td colspan="11">In possession 4<span>oldest first</span></td></tr>
+<tr class="r working sel-kb"><td><span class="si working"><span class="spin"></span></span></td><td class="no">4</td><td class="tk">WEB-930</td><td class="tp"><b>dev 회귀 실패 2건 수정과 재배포</b><span><span class="now">재배포 후 회귀 재실행</span></span></td><td><span class="nat cld"><i></i>CLD</span></td><td>shop-api</td><td>3</td><td class="tm">~6'<small>left</small></td><td><span class="cond "><span class="segs"><i class="d"></i><i class="d"></i><i class="d"></i><i class="n"></i><i></i><i></i><i></i></span><b>3/7</b></span></td><td><span class="rep"><svg aria-hidden="true"><use href="#i-page"/></svg>2</span></td><td>#4790</td></tr>
+<tr class="r working"><td><span class="si working"><span class="spin"></span></span></td><td class="no">5</td><td class="tk">WEB-1491</td><td class="tp"><b>상담 라우팅 판정 로그 대조표</b><span>Datadog 로그 312건을 판정 결과별로 집계하는 중</span></td><td><span class="nat cld"><i></i>CLD</span></td><td>shop-api</td><td>1</td><td class="tm">22'</td><td><span class="cond "><span class="segs"><i class="d"></i><i class="n"></i><i></i><i></i></span><b>1/4</b></span></td><td></td><td></td></tr>
+<tr class="r working"><td><span class="si working"><span class="spin"></span></span></td><td class="no">6</td><td class="tk">Slack</td><td class="tp"><b>새 상담 스레드 진단</b><span>Waiting on background tasks</span></td><td><span class="nat cld"><i></i>CLD</span></td><td>ma’veyyo</td><td></td><td class="tm">8'</td><td></td><td></td><td></td></tr>
+<tr class="r working"><td><span class="si working"><span class="spin"></span></span></td><td class="no">7</td><td class="tk">WEB-1438</td><td class="tp"><b>문서 형식 대조 리뷰</b><span>변경 파일 6개 검토 중</span></td><td><span class="nat cdx"><i></i>CDX</span></td><td>docs</td><td></td><td class="tm">5'</td><td></td><td></td><td></td></tr>
+<tr class="grp done"><td colspan="11">Full time 8<span>4 shown, newest first</span></td></tr>
+<tr class="r done"><td><span class="si done">✓</span></td><td class="no">8</td><td class="tk">WEB-1525</td><td class="tp"><b>argocd 서비스 롤백 PR 정리</b><span>PR 을 올렸고 dev 반영까지 확인했어요.</span></td><td><span class="nat cld"><i></i>CLD</span></td><td>acme-deploy</td><td>2</td><td class="tm">now</td><td></td><td><span class="rep"><svg aria-hidden="true"><use href="#i-page"/></svg>1</span></td><td>#212</td></tr>
+<tr class="r done"><td><span class="si done">✓</span></td><td class="no">9</td><td class="tk">WEB-1407</td><td class="tp"><b>분류기 임계값 재측정</b><span>임계값 0.62 에서 오분류가 가장 적었어요.</span></td><td><span class="nat gem"><i></i>GEM</span></td><td>shop-api</td><td></td><td class="tm">18m</td><td></td><td></td><td></td></tr>
+<tr class="r done viewed"><td><span class="si done">✓</span></td><td class="no">10</td><td class="tk">WEB-1313</td><td class="tp"><b>sAdmin 세션 갱신 후 재검증</b><span>재검증 12건 모두 통과했어요.</span></td><td><span class="nat cld"><i></i>CLD</span></td><td>shop-admin</td><td>4</td><td class="tm">2h</td><td></td><td></td><td></td></tr>
+<tr class="r done viewed"><td><span class="si done">✓</span></td><td class="no">11</td><td class="tk">WEB-1256</td><td class="tp"><b>jev 예외 큐 ADR 초안</b><span>ADR-0005 초안을 올렸어요.</span></td><td><span class="nat cld"><i></i>CLD</span></td><td>shop-api</td><td></td><td class="tm">3h</td><td></td><td></td><td></td></tr>
+<tr class="more"><td colspan="11">+4 more at full time</td></tr></tbody>
+        </table>
+      </div>
+      <aside class="panel po" aria-label="Selected session">
+        <div class="po-head">
+          <h3>WEB-930</h3>
+          <p>dev 회귀 실패 2건 수정과 재배포</p>
+          <div class="tags"><span><span class="spin"></span>In possession</span><span><i class="nat cld"><i></i></i>Claude</span><span>Phase 3</span><span>PR #4790</span><span>shop-api</span></div>
+        </div>
+        <dl class="po-stats">
+          <div><dt>Minutes</dt><dd class="live">22'</dd></div>
+          <div><dt>Added time</dt><dd>~6'</dd></div>
+          <div><dt>Game plan</dt><dd>3/7</dd></div>
+          <div><dt>Match reports</dt><dd>2</dd></div>
+        </dl>
+        <div class="po-sec">Commentary</div>
+        <div class="po-word"><span class="now">재배포 후 회귀 재실행</span> 라우팅 판정의 null 분기를 고쳤고 단위 테스트를 추가했어.</div>
+        <div class="po-sec">Game plan<span>phase 4 of 7, ↑↓</span></div>
+        <ol class="po-plan">
+          <li><span class="g ok">✓</span>실패 로그 수집<span class="note">2건</span></li>
+          <li><span class="g ok">✓</span>원인 수정<span class="note"></span></li>
+          <li><span class="g ok">✓</span>단위 테스트<span class="note"></span></li>
+          <li class="cur"><span class="spin" style="margin:auto"></span>재배포 후 회귀 재실행<span class="note">dev</span></li>
+          <li><span class="g lf">○</span>결과 대조<span class="note"></span></li>
+          <li><span class="g lf">○</span>PR 갱신<span class="note"></span></li>
+          <li><span class="g lf">○</span>티켓 정리<span class="note"></span></li>
+        </ol>
+        <div class="po-sec">Match reports</div>
+        <div class="po-reports"><span class="tchip page">Progress</span><span class="tchip page">회귀 결과</span></div>
+        <div class="po-actions">
+          <button class="btn primary" type="button">Watch live<span class="kbd">↩</span></button>
+          <button class="btn" type="button">Dossier<span class="kbd">⌘↩</span></button>
+          <button class="btn" type="button">Match report<span class="kbd">⇧↩</span></button>
+          <button class="btn" type="button">Sub off<span class="kbd">⌫</span></button>
+        </div>
+      </aside>
+    </section><section class="livearea"><div class="panel">
+      <div class="ptabs" role="tablist" aria-label="Tabs">
+        <button class="pt" role="tab" aria-selected="true"><span class="ag">C</span>WEB-930 regression<span class="spin"></span><span class="x"><svg aria-hidden="true" width="10" height="10"><use href="#i-x"/></svg></span></button>
+        <button class="pt" role="tab"><span class="ag">C</span>WEB-1495 DDL<span class="st needs"></span></button>
+        <button class="pt" role="tab"><span class="ag">X</span>Codex review<span class="spin"></span></button>
+        <button class="pt" role="tab"><span class="ag">$</span>tb4 zsh</button>
+        <button class="tab-add" type="button" title="New tab"><svg aria-hidden="true" width="14" height="14"><use href="#i-plus"/></svg></button>
+        <span class="grow"></span>
+        <button class="iconbtn" type="button" title="Files panel"><svg aria-hidden="true"><use href="#i-files"/></svg></button>
+        <button class="iconbtn" type="button" title="Changes panel" aria-pressed="true"><svg aria-hidden="true"><use href="#i-diff"/></svg></button>
+      </div>
+      <div class="pane-head">
+        <span class="ico">C</span><b>WEB-930 regression</b><span class="dir">~/git-repo/shop-api-WEB-930</span>
+        <span class="crumb" style="border:0;height:auto"><span class="branch"><svg aria-hidden="true"><use href="#i-branch"/></svg>feat/WEB-930-regression</span></span>
+        <span class="grow"></span>
+        <span class="tools"><button title="Split right"><svg aria-hidden="true"><use href="#i-split-r"/></svg></button><button title="Split down"><svg aria-hidden="true"><use href="#i-split-d"/></svg></button><button title="Zoom"><svg aria-hidden="true"><use href="#i-zoom"/></svg></button><button title="Close"><svg aria-hidden="true"><use href="#i-x"/></svg></button></span>
+      </div>
+<div class="tty"><span class="d">╭──────────────────────────────────────────────╮</span>
+<span class="d">│</span> <span class="p">✻</span> Claude Code            <span class="d">~/git-repo/shop-api-WEB-930</span>
+<span class="d">╰──────────────────────────────────────────────╯</span>
+
+<span class="y">&gt;</span> dev 회귀 실패 2건 고치고 재배포까지 해줘
+
+<span class="g">●</span> 실패 로그 2건을 먼저 모을게.
+  <span class="d">⎿</span>  Bash(./gradlew :api:test --tests '*Routing*')
+     <span class="d">BUILD SUCCESSFUL in 41s, 128 tests completed</span>
+
+<span class="g">●</span> 원인은 라우팅 판정의 null 분기였어. 수정했고 단위 테스트를 추가했어.
+  <span class="d">⎿</span>  Update(src/main/kotlin/routing/Judge.kt)
+     <span class="d">+12 −3</span>
+
+<span class="g">●</span> 재배포 후 회귀를 다시 돌리는 중이야.
+  <span class="d">⎿</span>  Bash(gh workflow run deploy-dev.yml --ref feat/WEB-930)
+     <span class="d">run 1184227 queued, watching</span>
+
+<span class="p">✶</span> <span class="d">Re-running regression… (2m 14s, esc to interrupt)</span>
+
+<span class="box"><span class="y">&gt;</span> <span class="d">▌</span></span></div>
+    </div></section></div></div>
+
+  <h2>같은 화면 모드의 다른 화면</h2>
+  <p>상단 메뉴에서 고르면 위쪽 화면만 바뀌고 아래 터미널은 그대로다. 아래 캡처는 위쪽 화면 부분만 보인다.</p>
+  <div class="frame-wrap" style="--z:var(--z2,0.62)"><div class="fmwin short" role="img" aria-label="Herdr window, Inbox screen"><header class="top">
+      <div class="lights"><i></i><i></i><i></i></div>
+      <button class="navbtn" type="button" title="Back · ⌘["><svg aria-hidden="true"><use href="#i-left"/></svg></button>
+      <button class="navbtn" type="button" title="Forward · ⌘]"><svg aria-hidden="true"><use href="#i-right"/></svg></button>
+      <button class="club-sw" type="button" title="Switch ground"><img class="crest" src="./art/crest.png" alt=""><span><b>docs</b><small>Ground 3 of 9</small></span><svg aria-hidden="true" class="caret"><use href="#i-caret"/></svg></button>
+      <nav class="menu-main" aria-label="Screens"><button class="mm">Squad<svg aria-hidden="true" class="caret"><use href="#i-caret"/></svg></button><button class="mm" aria-current="page">Inbox<span class="cnt">3</span></button><button class="mm">Staff<svg aria-hidden="true" class="caret"><use href="#i-caret"/></svg></button><button class="mm">Club<svg aria-hidden="true" class="caret"><use href="#i-caret"/></svg></button></nav>
+      <span class="grow"></span>
+      <div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span>Scout</span></div>
+      <button class="iconbtn" type="button" title="3 reports to read · Tab"><svg aria-hidden="true"><use href="#i-inbox"/></svg><span class="badge">3</span></button>
+      <button class="iconbtn" type="button" title="Settings"><svg aria-hidden="true"><use href="#i-gear"/></svg></button>
+      <div class="datebox"><div><b>WED 11/11/2026</b><span>3 on the touchline</span></div><span class="clock">16:05</span></div>
+      <button class="continue" type="button" title="Go to the longest touchline call, Space"><span>Continue<small>WEB-1495 on the touchline, 14 min</small></span><svg aria-hidden="true"><use href="#i-chev2"/></svg></button>
+    </header><div class="sub"><div class="crumb"><b>Inbox</b></div><button class="subtab" aria-pressed="true">All</button><button class="subtab" aria-pressed="false">Touchline</button><button class="subtab" aria-pressed="false">Match reports</button><div class="grow"></div><div class="notice">Subbed off WEB-1402 <button type="button">Undo ⌘Z</button></div><button class="quick" type="button">Keys <kbd>?</kbd></button></div><section class="screen inbox">
+      <div class="panel ib-list msgs">
+        <div class="ph"><h3>Inbox</h3><span class="grow"></span></div>
+        <div class="filters"><button class="chip" aria-pressed="true">All</button><button class="chip">Touchline (3)</button><button class="chip">Match reports (3)</button></div>
+        <div class="mday">Touchline</div>
+        <button class="msg on"><span class="si needs">!</span><span class="from">WEB-1495, shop-api</span><span class="t">14'</span><span class="title">운영 DDL 87 적용 확인 후 배포 재개</span></button>
+        <button class="msg"><span class="si needs">!</span><span class="from">WEB-1518, docs</span><span class="t">3'</span><span class="title">FAQ 초안 검수 범위 질문</span></button>
+        <button class="msg"><span class="si stall">+</span><span class="from">WEB-1021, stoppage</span><span class="t">12'</span><span class="title">스테이징 회귀 결과 수집</span></button>
+        <div class="mday">Match reports</div>
+        <button class="msg unread"><span class="si done"><svg aria-hidden="true" width="11" height="11"><use href="#i-page"/></svg></span><span class="from">WEB-1495, Progress</span><span class="t">16:02</span><span class="title">DDL 87 적용 체크리스트</span></button>
+        <button class="msg unread"><span class="si done"><svg aria-hidden="true" width="11" height="11"><use href="#i-page"/></svg></span><span class="from">WEB-930, Progress</span><span class="t">15:51</span><span class="title">회귀 재실행 진행 현황</span></button>
+        <button class="msg unread"><span class="si done"><svg aria-hidden="true" width="11" height="11"><use href="#i-page"/></svg></span><span class="from">WEB-1525, Report</span><span class="t">15:40</span><span class="title">롤백 결과 요약</span></button>
+      </div>
+      <div class="panel ib-body po">
+        <div class="ib-head"><div class="from"><span class="si needs">!</span><b>WEB-1495</b><span>Phase 2</span><span><span class="nat cld"><i></i>CLD</span></span><span>shop-api</span><span>on the touchline for 14 min</span></div><h3>운영 DDL 87 적용 확인 후 배포 재개</h3></div>
+        <div class="ib-text"><p>DDL 87 을 운영 DB 에 적용해 주시면 다음 단계(배포)를 이어서 진행할게요.</p><p>적용할 SQL 은 체크리스트 페이지 3번 항목에 있어요. 적용 뒤 테이블 존재 여부를 직접 확인한 다음 배포를 재개합니다.</p></div>
+        <div class="ib-att"><div class="att"><svg aria-hidden="true"><use href="#i-page"/></svg><span>DDL 87 적용 체크리스트<small>Progress page, 16:02</small></span></div></div>
+        <div class="ib-actions"><button class="btn primary" type="button" style="padding:0 14px">Give instructions ↩</button><button class="btn" type="button" style="padding:0 14px">Dossier ⌘↩</button><button class="btn" type="button" style="padding:0 14px">Match report ⇧↩</button><span style="flex:1"></span><button class="btn" type="button" style="padding:0 14px">Next touchline call Space</button></div>
+      </div>
+    </section></div></div>
+  <p style="color:var(--ink-2);margin:10px 0 28px">Inbox: 터치라인에서 지시를 기다리는 세션과 경기 리포트를 메시지로 읽는다. Space 는 다음 터치라인 호출, Tab 은 가장 오래된 리포트.</p>
+  <div class="frame-wrap" style="--z:var(--z2,0.62)"><div class="fmwin short" role="img" aria-label="Herdr window, Staff screen"><header class="top">
+      <div class="lights"><i></i><i></i><i></i></div>
+      <button class="navbtn" type="button" title="Back · ⌘["><svg aria-hidden="true"><use href="#i-left"/></svg></button>
+      <button class="navbtn" type="button" title="Forward · ⌘]"><svg aria-hidden="true"><use href="#i-right"/></svg></button>
+      <button class="club-sw" type="button" title="Switch ground"><img class="crest" src="./art/crest.png" alt=""><span><b>docs</b><small>Ground 3 of 9</small></span><svg aria-hidden="true" class="caret"><use href="#i-caret"/></svg></button>
+      <nav class="menu-main" aria-label="Screens"><button class="mm">Squad<svg aria-hidden="true" class="caret"><use href="#i-caret"/></svg></button><button class="mm">Inbox<span class="cnt">3</span></button><button class="mm" aria-current="page">Staff<svg aria-hidden="true" class="caret"><use href="#i-caret"/></svg></button><button class="mm">Club<svg aria-hidden="true" class="caret"><use href="#i-caret"/></svg></button></nav>
+      <span class="grow"></span>
+      <div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span>Scout</span></div>
+      <button class="iconbtn" type="button" title="3 reports to read · Tab"><svg aria-hidden="true"><use href="#i-inbox"/></svg><span class="badge">3</span></button>
+      <button class="iconbtn" type="button" title="Settings"><svg aria-hidden="true"><use href="#i-gear"/></svg></button>
+      <div class="datebox"><div><b>WED 11/11/2026</b><span>3 on the touchline</span></div><span class="clock">16:05</span></div>
+      <button class="continue" type="button" title="Go to the longest touchline call, Space"><span>Continue<small>WEB-1495 on the touchline, 14 min</small></span><svg aria-hidden="true"><use href="#i-chev2"/></svg></button>
+    </header><div class="sub"><div class="crumb"><b>Staff</b></div><button class="subtab" aria-pressed="true">Contracts</button><button class="subtab" aria-pressed="false">Wage budgets</button><div class="grow"></div><div class="notice">Subbed off WEB-1402 <button type="button">Undo ⌘Z</button></div><button class="quick" type="button">Keys <kbd>?</kbd></button></div><section class="screen one">
+      <div class="panel">
+        <div class="ph"><h3>Backroom staff</h3><span class="meta">agents, logins and their wage budgets</span><span class="grow"></span><span class="meta">↑↓ move, ↩ start, o debut in a new pane</span></div>
+        <table class="stafftbl">
+          <thead><tr><th style="width:44px">Starts</th><th>Name</th><th style="width:200px">Contract</th><th style="width:220px">5h wage budget</th><th style="width:220px">Week wage budget</th><th style="width:220px"></th></tr></thead>
+          <tbody>
+            <tr class="grp"><td colspan="6">Claude</td></tr>
+            <tr><td><span class="radio on"></span></td><td class="nm"><b>work</b><small>alex@example.com, this pane</small></td><td>New sessions sign here</td><td><span class="ub"><span class="bar"><i class="" style="width:38%"></i></span><b class="">38%</b></span><span class="rs">resets 18:00</span></td><td><span class="ub"><span class="bar"><i class="" style="width:61%"></i></span><b class="">61%</b></span><span class="rs">resets Mon</span></td><td><span class="lnk">new pane</span>  <span class="lnk">rename</span></td></tr>
+            <tr><td><span class="radio"></span></td><td class="nm"><b>personal</b><small>personal login</small></td><td></td><td><span class="ub"><span class="bar"><i class="hot" style="width:92%"></i></span><b class="hot">92%</b></span><span class="rs">resets 16:40</span></td><td><span class="ub"><span class="bar"><i class="" style="width:47%"></i></span><b class="">47%</b></span><span class="rs">resets Thu</span></td><td><span class="lnk">new pane</span>  <span class="lnk">transfer this session here</span></td></tr>
+            <tr class="addrow"><td></td><td colspan="5">+ Sign a Claude account</td></tr>
+            <tr class="grp"><td colspan="6">Codex</td></tr>
+            <tr><td><span class="radio on"></span></td><td class="nm"><b>System default</b><small>~/.codex</small></td><td>New Codex sessions</td><td><span class="ub"><span class="bar"><i class="" style="width:12%"></i></span><b class="">12%</b></span><span class="rs">resets 19:20</span></td><td><span class="ub"><span class="bar"><i class="" style="width:30%"></i></span><b class="">30%</b></span><span class="rs">resets Sat</span></td><td><span class="lnk">new pane</span></td></tr>
+            <tr class="addrow"><td></td><td colspan="5">+ Sign a Codex login</td></tr>
+            <tr class="grp"><td colspan="6">Custom commands</td></tr>
+            <tr><td></td><td class="nm"><b>Codex via claude-gpt</b><small>claude-gpt</small></td><td>Resumable</td><td colspan="2"><span class="rs">usage not tracked</span></td><td><span class="lnk">new pane</span>  <span class="lnk">edit</span></td></tr>
+            <tr class="addrow"><td></td><td colspan="5">+ Add custom command</td></tr>
+            <tr class="grp"><td colspan="6">Start command</td></tr>
+            <tr><td></td><td class="nm" colspan="5"><b style="font-family:var(--font-mono);font-size:13px">claude</b><small>runs through your shell when it is not claude</small></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section></div></div>
+  <p style="color:var(--ink-2);margin:10px 0 28px">Backroom staff: 계정, Codex 로그인, 사용자 명령을 계약처럼 관리하고 사용량은 임금 예산 막대로 본다. ⌃⇧A 로 바로 연다.</p>
+  <div class="frame-wrap" style="--z:var(--z2,0.62)"><div class="fmwin short" role="img" aria-label="Herdr window, Club screen"><header class="top">
+      <div class="lights"><i></i><i></i><i></i></div>
+      <button class="navbtn" type="button" title="Back · ⌘["><svg aria-hidden="true"><use href="#i-left"/></svg></button>
+      <button class="navbtn" type="button" title="Forward · ⌘]"><svg aria-hidden="true"><use href="#i-right"/></svg></button>
+      <button class="club-sw" type="button" title="Switch ground"><img class="crest" src="./art/crest.png" alt=""><span><b>docs</b><small>Ground 3 of 9</small></span><svg aria-hidden="true" class="caret"><use href="#i-caret"/></svg></button>
+      <nav class="menu-main" aria-label="Screens"><button class="mm">Squad<svg aria-hidden="true" class="caret"><use href="#i-caret"/></svg></button><button class="mm">Inbox<span class="cnt">3</span></button><button class="mm">Staff<svg aria-hidden="true" class="caret"><use href="#i-caret"/></svg></button><button class="mm" aria-current="page">Club<svg aria-hidden="true" class="caret"><use href="#i-caret"/></svg></button></nav>
+      <span class="grow"></span>
+      <div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span>Scout</span></div>
+      <button class="iconbtn" type="button" title="3 reports to read · Tab"><svg aria-hidden="true"><use href="#i-inbox"/></svg><span class="badge">3</span></button>
+      <button class="iconbtn" type="button" title="Settings"><svg aria-hidden="true"><use href="#i-gear"/></svg></button>
+      <div class="datebox"><div><b>WED 11/11/2026</b><span>3 on the touchline</span></div><span class="clock">16:05</span></div>
+      <button class="continue" type="button" title="Go to the longest touchline call, Space"><span>Continue<small>WEB-1495 on the touchline, 14 min</small></span><svg aria-hidden="true"><use href="#i-chev2"/></svg></button>
+    </header><div class="sub"><div class="crumb"><b>Club</b></div><button class="subtab" aria-pressed="true">Grounds</button><div class="grow"></div><div class="notice">Subbed off WEB-1402 <button type="button">Undo ⌘Z</button></div><button class="quick" type="button">Keys <kbd>?</kbd></button></div><section class="screen one">
+      <div class="panel">
+        <div class="ph"><h3>Club</h3><span class="meta">every repository is a ground, every space a pitch in it</span><span class="grow"></span><button class="btn" type="button" style="padding:0 12px"><svg aria-hidden="true"><use href="#i-plus"/></svg>New space</button><button class="btn" type="button" style="padding:0 12px"><svg aria-hidden="true"><use href="#i-gear"/></svg>Settings</button></div>
+        <div class="clubgrid">
+          <div class="ground"><header><b>shop-api</b><small>home pitch first</small></header><button class="sprow"><span class="nm"><b>base</b><span>shop-api</span></span><span class="crewc"><span class="idle">idle 15m</span></span></button><button class="sprow"><span class="nm"><b>WEB-1495</b><span>DDL 재개</span></span><span class="crewc"><span class="si needs">! 1</span><span class="si stall">+ 1</span></span></button><button class="sprow"><span class="nm"><b>WEB-1491</b><span>라우팅 판정</span></span><span class="crewc"><span class="si working"><span class="spin"></span> 1</span></span></button><button class="sprow"><span class="nm"><b>WEB-1256</b><span>jev ssot</span></span><span class="crewc"><span class="si done">✓ 1</span></span></button></div>
+          <div class="ground"><header><b>docs</b></header><button class="sprow shown"><span class="nm"><b>WEB-930</b><span>회귀 수정</span></span><span class="crewc"><span class="si working"><span class="spin"></span> 1</span><span class="si needs">! 1</span><span class="si done">✓ 1</span></span></button><button class="sprow"><span class="nm"><b>WEB-1438</b><span>문서 형식</span></span><span class="crewc"><span class="si working"><span class="spin"></span> 1</span></span></button></div>
+          <div class="ground"><header><b>ma’veyyo</b><small>one row per tab</small></header><button class="sprow"><span class="nm"><b>새 상담</b><span>feedback-loop</span></span><span class="crewc"><span class="si working"><span class="spin"></span> 1</span></span></button><button class="sprow"><span class="nm"><b>멘션 응답</b><span>threadmate</span></span><span class="crewc"><span class="idle">idle 40m</span></span></button></div>
+          <div class="ground"><header><b>acme-deploy</b></header><button class="sprow"><span class="nm"><b>WEB-1525</b><span>rollback</span></span><span class="crewc"><span class="si done">✓ 1</span></span></button></div>
+          <div class="ground"><header><b>herdr-fm27</b></header><button class="sprow"><span class="nm"><b>base</b><span>herdr-fm27</span></span><span class="crewc"><span class="idle">shell</span></span></button></div>
+        </div>
+      </div>
+    </section></div></div>
+  <p style="color:var(--ink-2);margin:10px 0 28px">Club: 저장소별로 공간을 묶어 보여 준다. 상단 문장 옆 스위처는 이 목록을 드롭다운으로 줄여 연다.</p>
+
+  <h2>모드 구성</h2>
+  <p>기능을 화면 단위로 다시 묶었다. 데이터를 읽는 스크립트(scan.sh, cca)는 기능이라 그대로 쓴다.</p>
+  <table class="map">
+    <thead><tr><th>mod</th><th>맡는 기능</th><th>키</th></tr></thead>
+    <tbody>
+      <tr><td>fm-chrome</td><td>상단 메뉴(화면 전환), 공간 스위처, 방문 기록, 검색, Continue, 리포트 배지, 되돌리기 알림, 키 안내</td><td>⌘[ ⌘], Space, ⇧Space, ⌘Z, ?</td></tr>
+      <tr><td>fm-screens</td><td>Squad(세션 분류·정렬·선택·이동·숨김·미루기·단계·링크·리포트), Inbox(부르는 세션과 리포트), Staff(계정·사용량·추가·이어 하기), Club(저장소별 공간, 공간 정렬, 새 공간, 설정). 한 mod 가 키보드를 쥔다</td><td>←→ ⌥←→ ↩ ⌘↩ ⇧↩ ⌫ ↑↓ Tab Esc, 입력하면 검색, C J P S G, o</td></tr>
+      <tr><td>fm-live</td><td>탭 막대(선택·재정렬·이름 변경·휠·닫기·새 탭), Files·Changes 패널, pane 헤더(분할·확대·닫기)</td><td>←→ ↩</td></tr>
+      <tr><td>fm-editor</td><td>hv 로 여는 에디터 pane</td><td>⌘S</td></tr>
+      <tr><td>keys.json</td><td>키보드 전환, 계정 화면 열기, 터미널 글자 크기</td><td>⌃⌥P, ⌃⇧A, ⌘+ ⌘- ⌘0</td></tr>
+    </tbody>
+  </table>
+
+  <h2>용어</h2>
+  <p>에이전트를 이루는 요소를 축구 전술 용어로 바꿨다. 화면 고정 문구는 영어, 세션 데이터는 한국어 그대로다.</p>
+  <table class="map">
+    <thead><tr><th>에이전트 쪽</th><th>화면 용어</th><th>뜻</th></tr></thead>
+    <tbody>
+      <tr><td>나를 부르는 세션, 멈춘 세션</td><td>Touchline, Stoppage</td><td>감독의 지시를 기다리는 선수, 경기가 잠시 멈춤</td></tr>
+      <tr><td>작업 중, 끝난 세션</td><td>In possession, Full time</td><td>공을 쥐고 전개 중, 경기 종료</td></tr>
+      <tr><td>상태별 세션 수</td><td>Shape 3-4-8</td><td>포메이션 표기처럼 Touchline, In possession, Full time 순</td></tr>
+      <tr><td>회차, 경과 시간, 남은 시간</td><td>Phase, Mins, Added time</td><td>공격 전개 단계, 경기 시간, 추가 시간</td></tr>
+      <tr><td>계획과 단계, 최근 메시지</td><td>Game plan, Commentary</td><td>경기 계획과 그 단계, 중계 해설</td></tr>
+      <tr><td>세션으로 이동, 링크 메뉴, 리포트</td><td>Watch live, Dossier, Match report</td><td>경기 보기, 선수 파일, 경기 리포트</td></tr>
+      <tr><td>숨기기, 계정 전환, 계정과 사용량</td><td>Sub off, Transfer, Backroom staff와 wage budget</td><td>교체 아웃, 이적, 스태프와 임금 예산</td></tr>
+      <tr><td>에이전트 종류, 저장소, 검색</td><td>Nat, Ground, Scout</td><td>국적, 홈 구장, 스카우트</td></tr>
+    </tbody>
+  </table>
+
+  <h2>오버레이</h2>
+  <div class="sheet">
+    <figure><div class="stage"><div class="modal dd">
+      <div class="grp">shop-api</div>
+      <button class="it"><span><b>WEB-1495</b><span>DDL 재개</span></span><span class="si needs">!</span></button>
+      <button class="it"><span><b>WEB-1491</b><span>라우팅 판정</span></span><span class="si working"><span class="spin"></span></span></button>
+      <div class="grp">docs</div>
+      <button class="it on"><span><b>WEB-930</b><span>회귀 수정</span></span><span class="si working"><span class="spin"></span></span></button>
+      <button class="it"><span><b>WEB-1438</b><span>문서 형식</span></span><span class="si working"><span class="spin"></span></span></button>
+      <div class="grp">ma’veyyo</div>
+      <button class="it"><span><b>새 상담</b><span>feedback-loop</span></span><span class="si working"><span class="spin"></span></span></button>
+    </div></div><figcaption><b>공간 스위처</b>: 상단 문장을 누르면 열림. ↑↓ ↩, 우클릭은 Herdr 공간 메뉴.</figcaption></figure>
+    <figure><div class="stage"><div class="modal menu">
+      <button class="mi on"><svg aria-hidden="true"><use href="#i-list"/></svg><span>Show game plan<small>deadhd checklist</small></span><span class="cap"><kbd>C</kbd></span></button>
+      <hr>
+      <button class="mi"><svg aria-hidden="true"><use href="#i-link"/></svg><span>Jira ticket<small>WEB-930</small></span><span class="cap"><kbd>J</kbd></span></button>
+      <button class="mi"><svg aria-hidden="true"><use href="#i-pr"/></svg><span>Pull request<small>#4790</small></span><span class="cap"><kbd>P</kbd></span></button>
+      <button class="mi"><svg aria-hidden="true"><use href="#i-chat"/></svg><span>Slack thread</span><span class="cap"><kbd>S</kbd></span></button>
+      <button class="mi"><svg aria-hidden="true"><use href="#i-page"/></svg><span>Report<small>Progress page</small></span><span class="cap"><kbd>G</kbd></span></button>
+      <hr>
+      <button class="mi"><svg aria-hidden="true"><use href="#i-copy"/></svg><span>Copy all links</span><span></span></button>
+    </div></div><figcaption><b>Dossier</b>: 우클릭이나 ⌘↩. 티켓, PR, 스레드, 리포트를 모은 선수 파일.</figcaption></figure>
+    <figure><div class="stage"><div class="modal"><div class="modal-head"><h3>Keys</h3><span class="grow"></span><span class="cap"><kbd>?</kbd></span></div>
+      <div class="keys">
+        <div>Select<span class="cap"><kbd>←</kbd><kbd>→</kbd></span></div>
+        <div>Watch live<span class="cap"><kbd>↩</kbd></span></div>
+        <div>Phases<span class="cap"><kbd>↑</kbd><kbd>↓</kbd></span></div>
+        <div>Sub off, rest<span class="cap"><kbd>⌫</kbd></span></div>
+        <div>Undo<span class="cap"><kbd>⌘</kbd><kbd>Z</kbd></span></div>
+        <div>Continue<span class="cap"><kbd>Space</kbd></span></div>
+        <div>Next full time<span class="cap"><kbd>⇧</kbd><kbd>Space</kbd></span></div>
+        <div>Dossier<span class="cap"><kbd>⌘</kbd><kbd>↩</kbd></span></div>
+        <div>Next match report<span class="cap"><kbd>Tab</kbd></span></div>
+        <div>Back<span class="cap"><kbd>Esc</kbd></span></div>
+        <div>First, last<span class="cap"><kbd>⌥←</kbd><kbd>⌥→</kbd></span></div>
+        <div>Match report<span class="cap"><kbd>⇧</kbd><kbd>↩</kbd></span></div>
+      </div></div></div><figcaption><b>Keys</b></figcaption></figure>
+  </div>
+</main>
+<script>
+  (function () { var z = new URLSearchParams(location.search).get('z'); if (z) document.getElementById('fw').style.setProperty('--z', z); })();
+  document.querySelectorAll('.zoombar button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.getElementById('fw').style.setProperty('--z', b.dataset.z);
+      document.querySelectorAll('.zoombar button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    });
+  });
+</script>
+</body>
+</html>
