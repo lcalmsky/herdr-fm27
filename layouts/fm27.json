@@ -1,4 +1,5 @@
 {
+  "preview": "layouts/fm27.png",
   "id": "root",
   "type": "column",
   "theme": "fm27",

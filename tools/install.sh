@@ -13,7 +13,7 @@ for f in fm-staff/cca fm-staff/usage-tap.sh fm-editor/hv fm-editor/hv-open fm-sq
   [ -f "$HOME_DIR/mods/$f" ] && chmod +x "$HOME_DIR/mods/$f"
 done
 mkdir -p "$HOME_DIR/layouts" "$HOME_DIR/themes"
-cp "$REPO/layouts/fm27.json" "$HOME_DIR/layouts/"
+cp "$REPO/layouts/fm27.json" "$REPO/layouts/fm27.png" "$HOME_DIR/layouts/"
 cp "$REPO/themes/fm27.json" "$HOME_DIR/themes/"
 python3 -I "$REPO/tools/merge-keys.py" "$HOME_DIR/keys.json" "$REPO/keys/fm27.json"
 for mod in $MODS; do herdr-app check "$HOME_DIR/mods/$mod"; done

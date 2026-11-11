@@ -116,9 +116,11 @@ test("install.sh copies every mod with the shared tokens, the layout, theme and 
     for (const file of ["fm-staff/cca", "fm-staff/usage-tap.sh", "fm-editor/hv", "fm-editor/hv-open", "fm-squad/scan.sh"]) {
       assert.ok(statSync(join(home, "mods", file)).mode & 0o111, `${file} is executable`);
     }
-    for (const file of ["layouts/fm27.json", "themes/fm27.json"]) {
+    for (const file of ["layouts/fm27.json", "layouts/fm27.png", "themes/fm27.json"]) {
       assert.deepEqual(readFileSync(join(home, file)), readFileSync(join(ROOT, file)), `${file} was copied byte for byte`);
     }
+    const preview = JSON.parse(readFileSync(join(home, "layouts/fm27.json"), "utf8")).preview;
+    assert.ok(existsSync(join(home, preview)), `the layout's preview ${preview} exists in the Herdr home`);
     assert.deepEqual(section(join(home, "keys.json")), section(SOURCE));
     assert.deepEqual(readFileSync(log, "utf8").trim().split("\n"), MODS.map((mod) => `check ${join(home, "mods", mod)}`));
   } finally {

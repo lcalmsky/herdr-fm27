@@ -43,7 +43,7 @@ Or, from a checkout:
 ./tools/install.sh
 ```
 
-The script copies `mods/fm-chrome`, `mods/fm-squad`, `mods/fm-staff`, `mods/fm-club`, `mods/fm-live` and `mods/fm-editor`, plus `layouts/fm27.json` and `themes/fm27.json`, into `${HERDR_APP_HOME:-$HOME/.config/herdr-app}`. It makes `cca`, `usage-tap.sh`, `hv`, `hv-open` and `scan.sh` executable, copies `shared/tokens.js` into each mod as `tokens.js`, merges `keys/fm27.json` into the person's `keys.json` (writing a `keys.json.bak-fm27-<timestamp>` copy first) and runs `herdr-app check` on each mod. Nothing is downloaded and no images are generated.
+The script copies `mods/fm-chrome`, `mods/fm-squad`, `mods/fm-staff`, `mods/fm-club`, `mods/fm-live` and `mods/fm-editor`, plus `layouts/fm27.json` (with its picker thumbnail `layouts/fm27.png`) and `themes/fm27.json`, into `${HERDR_APP_HOME:-$HOME/.config/herdr-app}`. It makes `cca`, `usage-tap.sh`, `hv`, `hv-open` and `scan.sh` executable, copies `shared/tokens.js` into each mod as `tokens.js`, merges `keys/fm27.json` into the person's `keys.json` (writing a `keys.json.bak-fm27-<timestamp>` copy first) and runs `herdr-app check` on each mod. Nothing is downloaded and no images are generated.
 
 The merged section applies only while this layout shows:
 

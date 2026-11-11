@@ -1,11 +1,12 @@
 // Renders art/shots/{squad,inbox,staff,club}.png (1680x1860 at 1.5x) from art/preview.html,
 // then preview.png: the Squad window's top 1680x1050 (16:10, 2520x1575), the shape herdr.dev's
-// gallery shows previews in (960x600 cards), so the table stays readable there.
+// gallery shows previews in (960x600 cards), so the table stays readable there, and
+// layouts/fm27.png: the same at 640x400, the thumbnail Herdr's layout picker shows.
 // Needs playwright-core and Google Chrome. Run from the repo root:
 //   npm i --no-save --prefix /tmp/tower-render playwright-core
 //   NODE_PATH=/tmp/tower-render/node_modules node art/render.mjs
 import { createRequire } from "node:module";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 const { chromium } = createRequire(join(process.env.NODE_PATH ?? ".", "x"))("playwright-core");
@@ -32,5 +33,8 @@ for (const [screen, path] of shots) {
 await page.evaluate(() => window.setScreen("squad"));
 const box = await win.boundingBox();
 await page.screenshot({ path: join(root, "preview.png"), clip: { x: box.x, y: box.y, width: 1680, height: 1050 } });
+const thumb = await browser.newPage({ viewport: { width: 640, height: 400 } });
+await thumb.setContent(`<style>html,body{margin:0}img{width:640px;height:400px;display:block}</style><img src="data:image/png;base64,${readFileSync(join(root, "preview.png")).toString("base64")}">`, { waitUntil: "load" });
+await thumb.screenshot({ path: join(root, "layouts/fm27.png") });
 await browser.close();
-console.log("art/shots/*.png and preview.png written");
+console.log("art/shots/*.png, preview.png and layouts/fm27.png written");
