@@ -555,6 +555,81 @@ test("the Dossier popup renders without touching focus, which Herdr refuses duri
   assert.doesNotThrow(() => v.render(), "a row with no links renders too");
 });
 
+test("a bg session no pane shows is marked Background and its Dossier leads with a stop row", () => {
+  const bg = (id, extra = {}) => session(id, "idle", 3, {
+    kind: "bg", jobId: id.slice(0, 8), where: { kind: "claude-bg", paneId: null, terminalId: null, attachId: id.slice(0, 8) }, ...extra,
+  });
+  const v = view([
+    bg("d40d716e-left"),
+    bg("a1b2c3d4-back", { where: { kind: "claude-bg", paneId: "p1", terminalId: null, attachId: "a1b2c3d4" } }),
+    session("plain-idle", "idle", 3),
+  ], { panes: [{ pane: "p1", terminal: "t1" }] });
+  const done = v.buildModel(NOW).done;
+  const card = (id) => done.find((item) => item.sessionId === id);
+  assert.equal(card("d40d716e-left").backgrounded, true);
+  assert.equal(card("a1b2c3d4-back").backgrounded, false, "an attached pane brings it back to a terminal");
+  assert.equal(card("plain-idle").backgrounded, false);
+  const open = (key) => {
+    globalThis.herdrOverlays = [];
+    v.openLinks(key, { notify() {} });
+    return globalThis.herdrOverlays[0];
+  };
+  const spec = open("row-d40d716e-left");
+  assert.equal(spec.props.stopId, "d40d716e");
+  assert.equal(spec.height, linksMenuHeight(0, false, true));
+  assert.equal(open("row-a1b2c3d4-back").props.stopId, null);
+  assert.equal(open("row-plain-idle").props.stopId, null);
+  assert.equal(linksMenuHeight(2, false, true), linksMenuHeight(2) + 34 + 9);
+  globalThis.herdrState = { props: { role: "links", head: "x", topic: null, links: [], stopId: "d40d716e" } };
+  const popup = new FmSquad();
+  Object.assign(popup, { role: "links", active: 0, handle: { focus() {} } });
+  assert.doesNotThrow(() => popup.render(), "the stop row renders");
+  globalThis.herdrOverlays = undefined;
+  globalThis.herdrState = {};
+});
+
+test("the stop row runs claude stop with the job id as a positional arg and closes only when it worked", async () => {
+  const stop = async (result) => {
+    globalThis.herdrState = { props: { role: "links", overlay: "o9", stopId: "d40d716e" } };
+    globalThis.herdrExec = [];
+    globalThis.herdrClosed = [];
+    globalThis.herdrExecResult = result;
+    const v = new FmSquad();
+    Object.assign(v, { role: "links", active: 0, stopError: null });
+    let task;
+    const cx = { notify() {}, spawn(fn) { task = fn(cx); } };
+    v.stopSession(cx);
+    await task;
+    return { exec: globalThis.herdrExec, closed: globalThis.herdrClosed, view: v };
+  };
+  const ok = await stop(undefined);
+  assert.deepEqual(ok.exec, [["sh", ["-lc", 'claude stop "$1"', "x", "d40d716e"]]]);
+  assert.deepEqual(ok.closed, ["o9"]);
+  const failed = await stop({ code: 1, stdout: "", stderr: "No background session d40d716e." });
+  assert.deepEqual(failed.closed, [], "a failed stop keeps the Dossier open");
+  assert.equal(failed.view.stopError, "No background session d40d716e");
+  globalThis.herdrExec = undefined;
+  globalThis.herdrClosed = undefined;
+  globalThis.herdrExecResult = undefined;
+  globalThis.herdrState = {};
+});
+
+test("X and enter on the first row stop the session before any link", () => {
+  globalThis.herdrState = { props: { role: "links", overlay: "o9", stopId: "d40d716e" } };
+  const v = new FmSquad();
+  Object.assign(v, { role: "links", active: 0, stopSession() { this.stopped = (this.stopped ?? 0) + 1; } });
+  const rows = [{ stop: true }, { kind: "jira", url: "https://acme.atlassian.net/browse/WEB-1", hot: "j" }];
+  const opened = [];
+  v.openLink = (link) => { opened.push(link.url); };
+  const cx = { stop_propagation() {}, notify() {}, open_url() {} };
+  v.linksKey("x", rows, cx);
+  v.linksKey("enter", rows, cx);
+  assert.equal(v.stopped, 2);
+  v.linksKey("j", rows, cx);
+  assert.deepEqual(opened, ["https://acme.atlassian.net/browse/WEB-1"]);
+  globalThis.herdrState = {};
+});
+
 test("the checklist row adds 34 px, plus a 9 px separator when links follow it", () => {
   assert.equal(linksMenuHeight(0, true), linksMenuHeight(0) + 34, "the row appears even with no links");
   assert.equal(linksMenuHeight(2, true), linksMenuHeight(2, false) + 34 + 9);

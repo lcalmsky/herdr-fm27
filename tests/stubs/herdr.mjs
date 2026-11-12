@@ -10,7 +10,7 @@ export const setShared = (name, value) => { const s = state(); s.shared = { ...(
 export const run = (...args) => { globalThis.herdrRuns?.push(args); };
 export const exec = async (...args) => {
   globalThis.herdrExec?.push(args);
-  return { code: 0, stdout: "", stderr: "" };
+  return globalThis.herdrExecResult ?? { code: 0, stdout: "", stderr: "" };
 };
 export const appHome = () => "/tmp";
 export const settings = () => state().settings ?? { zoom: 1 };

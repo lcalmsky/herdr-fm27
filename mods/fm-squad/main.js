@@ -228,11 +228,12 @@ export function placesOf(spaceList) {
 }
 
 // The links popup's height: 8 px padding, a 38 px head and its rule, 34 px rows, then a
-// separator and Copy all. The game-plan row leads and brings its own separator when links follow it.
-export function linksMenuHeight(count, checklist = false) {
+// separator and Copy all. The stop row leads with its separator, then the game-plan row, which brings its own
+// separator when links follow it.
+export function linksMenuHeight(count, checklist = false, stop = false) {
   const base = 16 + 38 + 5;
   const rows = count > 0 ? count * 34 + 9 + 34 : 34;
-  return base + (checklist ? 34 + (count ? 9 : 0) : 0) + rows;
+  return base + (stop ? 34 + 9 : 0) + (checklist ? 34 + (count ? 9 : 0) : 0) + rows;
 }
 
 // A session name someone chose (`claude -n`, `/rename`), not one a launcher generated.
@@ -448,6 +449,7 @@ export default class FmSquad extends View {
     if (this.role === "links") {
       this.active = 0;
       this.error = null;
+      this.stopError = null;
       // Focus can't change during render; the timer catches the popup once it is on screen.
       this.handle.focus();
       cx.timer.after(50, () => this.handle.focus());
@@ -893,6 +895,7 @@ export default class FmSquad extends View {
         terminal: terminal?.address ?? null,
         space: ids?.space ?? null,
         tab: ids?.tab ?? null,
+        backgrounded: raw.kind === "bg" && !this.attachedFocus(raw.where ?? {}),
       });
     }
 
@@ -1524,9 +1527,10 @@ export default class FmSquad extends View {
     const links = linksOf(item);
     // A Claude Code session in a live terminal with no checklist yet can be asked to show one.
     const showChecklist = Boolean(item.terminal) && item.raw?.t === "s" && !item.hasChecklist;
-    openOverlay({ mod: "fm-squad", kind: "popup", ...(at ? { at } : {}), width: LINKS_W, height: linksMenuHeight(links.length, showChecklist),
+    const stopId = item.backgrounded ? item.raw.jobId ?? item.where.attachId ?? null : null;
+    openOverlay({ mod: "fm-squad", kind: "popup", ...(at ? { at } : {}), width: LINKS_W, height: linksMenuHeight(links.length, showChecklist, Boolean(stopId)),
       props: { role: "links", head: ticketOf(item) ?? (item.spot?.slack ? "Slack" : item.spot?.label ?? "Session"),
-        topic: item.topic ?? item.title ?? null, links, showChecklist, terminal: item.terminal ?? null,
+        topic: item.topic ?? item.title ?? null, links, showChecklist, stopId, terminal: item.terminal ?? null,
         working: item.raw?.status === "busy" } });
   }
 
@@ -1765,7 +1769,10 @@ export default class FmSquad extends View {
       ticket: (col) => h_flex().w(col.w).flex_none().items_center()
         .child(display(ticketOf(item) ?? "—", FS.lg, selected ? C.focusKb : C.ink)),
       brief: () => v_flex().flex_1().min_w(0).justify_center()
-        .child(div().min_w(0).truncate().text_size(FS.md).font_family(FONT.body).font_semibold().text_color(C.ink).child(item.title))
+        .child(h_flex().min_w(0).gap(6).items_center()
+          .child(div().min_w(0).truncate().text_size(FS.md).font_family(FONT.body).font_semibold().text_color(C.ink).child(item.title))
+          .when(Boolean(item.backgrounded), (el) => el.child(h_flex().h(18).px(6).flex_none().rounded(R.r2).bg(C.panel3).items_center()
+            .child(text("Background", FS.xs, C.ink2)))))
         .child(div().min_w(0).truncate().text_size(FS.sm).font_family(FONT.body)
           .text_color(item.group === "working" && message?.spinner ? C.working : C.ink3)
           .child(message?.text ?? "")),
@@ -2192,8 +2199,8 @@ export default class FmSquad extends View {
   // ---- the Dossier popup (props role "links") ----
 
   linksMenu() {
-    const { head, topic, links = [], showChecklist = false } = props() ?? {};
-    const rows = showChecklist ? [{ checklist: true }, ...links] : links;
+    const { head, topic, links = [], showChecklist = false, stopId = null } = props() ?? {};
+    const rows = [...(stopId ? [{ stop: true }] : []), ...(showChecklist ? [{ checklist: true }] : []), ...links];
     const row = (id, label, meta, hot, active, action) => h_flex().id(id).h(34).flex_none().px(8).gap(8).rounded(R.r1)
       .items_center().cursor_pointer()
       .when(active, (el) => el.bg(C.panel3))
@@ -2205,7 +2212,7 @@ export default class FmSquad extends View {
       .when(Boolean(hot), (el) => el.child(keycap(String(hot).toUpperCase())));
     const checklistRow = h_flex().id("link-checklist").h(34).flex_none().px(8).gap(8).rounded(R.r1)
       .items_center().cursor_pointer()
-      .when(this.active === 0, (el) => el.bg(C.panel3))
+      .when(this.active === (stopId ? 1 : 0), (el) => el.bg(C.panel3))
       .hover((style) => style.bg(C.veil1))
       .on_click((_event, cx) => this.enableChecklist(cx))
       .child(div().flex_1().min_w(0).truncate().text_size(FS.sm).font_family(FONT.body).font_semibold().text_color(C.ink)
@@ -2214,7 +2221,17 @@ export default class FmSquad extends View {
       .when(Boolean(this.error), (el) => el.child(div().flex_none().max_w(110).truncate().text_size(FS.xs)
         .font_family(FONT.body).text_color(C.needs).child(this.error)))
       .child(keycap("C"));
-    const offset = showChecklist ? 1 : 0;
+    const stopRow = h_flex().id("link-stop").h(34).flex_none().px(8).gap(8).rounded(R.r1)
+      .items_center().cursor_pointer()
+      .when(this.active === 0, (el) => el.bg(C.panel3))
+      .hover((style) => style.bg(C.veil1))
+      .on_click((_event, cx) => this.stopSession(cx))
+      .child(div().flex_1().min_w(0).truncate().text_size(FS.sm).font_family(FONT.body).font_semibold().text_color(C.ink)
+        .child("Stop background session"))
+      .when(Boolean(this.stopError), (el) => el.child(div().flex_none().max_w(110).truncate().text_size(FS.xs)
+        .font_family(FONT.body).text_color(C.needs).child(this.stopError)))
+      .child(keycap("X"));
+    const offset = (stopId ? 1 : 0) + (showChecklist ? 1 : 0);
     return v_flex().id("fm-dossier").size_full().p(8).track_focus(this.handle)
       .on_key_down((event, cx) => this.linksKey(event.key, rows, cx))
       .child(v_flex().h(38).flex_none().px(8).pt(2)
@@ -2224,6 +2241,7 @@ export default class FmSquad extends View {
           .when(Boolean(head), (el) => el.child(text(head, FS.xs, C.ink2))))
         .when(Boolean(topic), (el) => el.child(div().min_w(0).truncate().text_size(FS.xs).font_family(FONT.body).text_color(C.ink3).child(topic))))
       .child(div().h(1).mx(6).mb(4).flex_none().bg(C.lineSoft))
+      .when(Boolean(stopId), (el) => el.child(stopRow).child(div().h(1).mx(6).my(4).flex_none().bg(C.lineSoft)))
       .when(showChecklist, (el) => el.child(checklistRow))
       .when(showChecklist && links.length > 0, (el) => el.child(div().h(1).mx(6).my(4).flex_none().bg(C.lineSoft)))
       .when(links.length === 0, (el) => el.child(h_flex().h(34).px(8).items_center()
@@ -2237,13 +2255,15 @@ export default class FmSquad extends View {
 
   // A row's letter runs it, ↑↓ move, ↩ runs the highlighted row, Esc closes.
   linksKey(key, rows, cx) {
-    const hot = rows.find((row) => (row.checklist ? key === "c" : row.hot === key));
-    if (hot?.checklist) this.enableChecklist(cx);
+    const hot = rows.find((row) => (row.stop ? key === "x" : row.checklist ? key === "c" : row.hot === key));
+    if (hot?.stop) this.stopSession(cx);
+    else if (hot?.checklist) this.enableChecklist(cx);
     else if (hot) this.openLink(hot, cx);
     else if (key === "down" && rows.length) this.active = (this.active + 1) % rows.length;
     else if (key === "up" && rows.length) this.active = (this.active - 1 + rows.length) % rows.length;
     else if (key === "enter" && rows[this.active]) {
-      if (rows[this.active].checklist) this.enableChecklist(cx);
+      if (rows[this.active].stop) this.stopSession(cx);
+      else if (rows[this.active].checklist) this.enableChecklist(cx);
       else this.openLink(rows[this.active], cx);
     } else if (key === "escape") closeOverlay(props().overlay);
     else return;
@@ -2263,6 +2283,25 @@ export default class FmSquad extends View {
       if (!result || result.code !== 0) {
         this.error = (((result?.stderr || result?.stdout) ?? "").trim().replace(/\.$/, ""))
           || "Could not reach the terminal — focus it in Herdr and retry";
+        cx.notify();
+        return;
+      }
+      closeOverlay(overlay);
+    });
+  }
+
+  // `claude stop` keeps the conversation, so `claude attach` can bring it back. The popup is closed only
+  // after the command returns: closing it ends this copy.
+  stopSession(cx) {
+    const { stopId, overlay } = props() ?? {};
+    if (!stopId) return;
+    this.stopError = null;
+    cx.spawn(async (cx) => {
+      let result = null;
+      try { result = await exec("sh", ["-lc", 'claude stop "$1"', "x", stopId]); } catch {}
+      if (!result || result.code !== 0) {
+        this.stopError = (((result?.stderr || result?.stdout) ?? "").trim().replace(/\.$/, ""))
+          || "Could not stop it — run claude stop in a terminal";
         cx.notify();
         return;
       }
