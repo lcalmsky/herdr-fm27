@@ -60,6 +60,19 @@ const codexRollout = (box, records, day = "2999/12/31") => box.put(
   `.codex/sessions/${day}/rollout-2026-11-09T00-00-00-11111111-2222-3333-4444-555555555555.jsonl`,
   records.map((record) => JSON.stringify(record)).join("\n"));
 
+test("a rolling-delivery objective is keyed by any ticket-shaped prefix, not a fixed list", () => {
+  const box = sandbox();
+  try {
+    box.put(".claude/state/rolling-delivery/active-programs.json", { programs: [
+      { objective: "ABC-123 goal text", updated_at: "2026-11-06" },
+      { objective: "no ticket key here", updated_at: "2026-11-05" },
+      { objective: "abc-9 lowercase prefix is no key", updated_at: "2026-11-04" }] });
+    assert.deepEqual(box.call("rd_objectives()"), { "ABC-123": "goal text" });
+  } finally {
+    box.done();
+  }
+});
+
 test("a garbled rolling-delivery file gives no objectives and never stops the scan", () => {
   const box = sandbox();
   try {

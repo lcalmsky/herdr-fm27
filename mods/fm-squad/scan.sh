@@ -643,11 +643,11 @@ def maveyyo_topic(cwd):
 
 
 RD_PROGRAMS = os.path.join(HOME, ".claude", "state", "rolling-delivery", "active-programs.json")
-OBJECTIVE_RE = re.compile(r"^\s*((?:CAS|IMIO|IEIS|WEB)-\d+)\s+(.+)$", re.S)
+OBJECTIVE_RE = re.compile(r"^\s*([A-Z][A-Z0-9]+-\d+)\s+(.+)$", re.S)
 
 
 def rd_objectives():
-    """Each ticket's rolling-delivery goal, newest program first: {"WEB-1313": "고도화 에픽: ..."}."""
+    """Each ticket's rolling-delivery goal, newest program first: {"ABC-123": "goal text"}."""
     try:
         with open(RD_PROGRAMS, encoding="utf-8") as handle:
             programs = json.load(handle).get("programs") or []
