@@ -1,9 +1,9 @@
 #!/bin/sh
-# Read-only session scan for the Pulse mod. Prints one JSON object per line:
+# Read-only session scan shared by the Herdr mods. Prints one JSON object per line:
 # {t:"s", ...} for each live Claude Code, Codex or Gemini CLI session, then one
 # {t:"meta", ...}. Reads session records, transcripts, agent rollout/chat files,
 # deadhd state, page alerts and the session processes' environment, plus the handoff
-# file and Maveyyo thread memory a session starts from. Writes nothing but its ledger
+# file and thread memory a session starts from. Writes nothing but its ledger
 # and identity caches under ${TMPDIR:-/tmp}/herdr-pulse. Secrets (*.key) are never opened.
 
 if ! command -v python3 >/dev/null 2>&1; then
@@ -209,6 +209,64 @@ def basename(value):
         return None
     name = value.rstrip("/").split("/")[-1].strip()
     return name or None
+
+
+REPO_CACHE = {}
+
+
+def repo_of(cwd):
+    if not isinstance(cwd, str) or not cwd:
+        return None
+    if cwd in REPO_CACHE:
+        return REPO_CACHE[cwd]
+    repo = None
+    try:
+        folder = os.path.abspath(cwd)
+        while True:
+            dotgit = os.path.join(folder, ".git")
+            if os.path.isdir(dotgit):
+                repo = basename(folder)
+                break
+            if os.path.isfile(dotgit):
+                gitdir = None
+                with open(dotgit, "r", encoding="utf-8", errors="replace") as f:
+                    for line in f:
+                        if line.startswith("gitdir:"):
+                            gitdir = line[len("gitdir:"):].strip()
+                            break
+                if gitdir:
+                    if not os.path.isabs(gitdir):
+                        gitdir = os.path.join(folder, gitdir)
+                    gitdir = os.path.normpath(gitdir)
+                    common = gitdir
+                    has_common = False
+                    common_file = os.path.join(gitdir, "commondir")
+                    if os.path.isfile(common_file):
+                        with open(common_file, "r", encoding="utf-8", errors="replace") as f:
+                            value = f.read().strip()
+                        if value:
+                            common = os.path.normpath(os.path.join(gitdir, value))
+                            has_common = True
+                    if not has_common:
+                        # A gitdir without commondir (a submodule) is named after its own folder.
+                        repo = basename(folder)
+                    else:
+                        name = basename(common)
+                        if name and name != ".git" and name.endswith(".git"):
+                            repo = name[:-4] or None
+                        elif basename(os.path.dirname(common)) == "modules" and basename(os.path.dirname(os.path.dirname(common))) == ".git":
+                            repo = name
+                        else:
+                            repo = basename(os.path.dirname(common))
+                break
+            parent = os.path.dirname(folder)
+            if parent == folder:
+                break
+            folder = parent
+    except Exception:
+        repo = None
+    REPO_CACHE[cwd] = repo
+    return repo
 
 
 def tool_label(name, data):
@@ -541,11 +599,38 @@ def summarize_transcript(path):
 
 HEAD_BYTES = 512 * 1024
 HANDOFF_RE = re.compile(r"(/[^\s`'\"]+/\.claude/handoff/[\w.-]+\.md)")
-ROUND_RE = re.compile(r"(\d+)\s*회차")
+# A round is counted either in Korean ("3회차") or in English ("round 3").
+ROUND_RE = re.compile(r"(\d+)\s*회차|\bround\s+(\d+)\b", re.IGNORECASE)
 PASTE_H1_RE = re.compile(r"<pasted_content[^>]*>\s*#\s+([^\n#<]+)")
 ARGS_RE = re.compile(r"<command-args>(.*?)</command-args>", re.S)
-MAVEYYO_SESSIONS = os.path.join(HOME, ".claude", "state", "maveyyo-bot", "sessions")
-MAVEYYO_KEY_RE = re.compile(r"^([A-Z0-9]+)-(\d+)_(\d+)$")
+# The thread-memory folder and the goals file are optional inputs: the environment names the
+# path first, then ${XDG_CONFIG_HOME:-$HOME/.config}/herdr-shared/scan.json, and with neither
+# that reader is off.
+CONFIG_PATH = os.path.join(
+    os.environ.get("XDG_CONFIG_HOME") or os.path.join(HOME, ".config"), "herdr-shared", "scan.json")
+
+
+def scan_config():
+    try:
+        with open(CONFIG_PATH, encoding="utf-8") as handle:
+            data = json.load(handle)
+    except (OSError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+CONFIG = scan_config()
+
+
+def configured_path(key):
+    value = CONFIG.get(key)
+    if not isinstance(value, str) or not value:
+        return None
+    return HOME + value[1:] if value == "~" or value.startswith("~/") else value
+
+
+THREAD_SESSIONS = os.environ.get("HERDR_THREAD_SESSIONS") or configured_path("threadSessions")
+THREAD_KEY_RE = re.compile(r"^([A-Z0-9]+)-(\d+)_(\d+)$")
 MEMORY_TOPIC_RE = re.compile(r"^-\s*(질문|원글):\s*(.+)$")
 
 
@@ -593,13 +678,15 @@ def first_heading(path):
     return None
 
 
-def maveyyo_topic(cwd):
-    match = MAVEYYO_KEY_RE.match(os.path.basename(cwd))
+def thread_topic(cwd):
+    if not THREAD_SESSIONS:
+        return None
+    match = THREAD_KEY_RE.match(os.path.basename(cwd))
     if not match:
         return None
     channel, seconds, fraction = match.groups()
     thread = {"channel": channel, "threadAt": int(seconds) * 1000}
-    state = os.path.dirname(MAVEYYO_SESSIONS)
+    state = os.path.dirname(THREAD_SESSIONS)
     record = jload(os.path.join(state, "threads", os.path.basename(cwd) + ".json"))
     if isinstance(record, dict):
         thread["lane"] = text(record.get("lane"))
@@ -642,12 +729,14 @@ def maveyyo_topic(cwd):
     return thread
 
 
-RD_PROGRAMS = os.path.join(HOME, ".claude", "state", "rolling-delivery", "active-programs.json")
+RD_PROGRAMS = os.environ.get("HERDR_GOALS_FILE") or configured_path("goalsFile")
 OBJECTIVE_RE = re.compile(r"^\s*([A-Z][A-Z0-9]+-\d+)\s+(.+)$", re.S)
 
 
 def rd_objectives():
-    """Each ticket's rolling-delivery goal, newest program first: {"ABC-123": "goal text"}."""
+    """Each ticket's goal from the goals file, newest program first: {"ABC-123": "goal text"}."""
+    if not RD_PROGRAMS:
+        return {}
     try:
         with open(RD_PROGRAMS, encoding="utf-8") as handle:
             programs = json.load(handle).get("programs") or []
@@ -668,7 +757,7 @@ def rd_objectives():
 
 def identity_path(session_id):
     safe = re.sub(r"[^A-Za-z0-9._-]", "_", session_id)
-    return os.path.join(CACHE_DIR, "identity-" + safe + ".json")
+    return os.path.join(CACHE_DIR, "identity-v2-" + safe + ".json")
 
 
 # What a session is about, read once from the start of its transcript and the files it names; handoff
@@ -688,15 +777,15 @@ def session_identity(path, session_id, cwd):
                 identity["handoff"] = heading
         round_match = ROUND_RE.search(prompt)
         if round_match:
-            identity["round"] = int(round_match.group(1))
+            identity["round"] = int(round_match.group(1) or round_match.group(2))
         paste = PASTE_H1_RE.search(prompt)
         if paste:
             identity["paste"] = collapse(paste.group(1))
-    if cwd and os.path.dirname(os.path.normpath(cwd)) == MAVEYYO_SESSIONS:
-        thread = maveyyo_topic(cwd)
+    if cwd and THREAD_SESSIONS and os.path.dirname(os.path.normpath(cwd)) == THREAD_SESSIONS:
+        thread = thread_topic(cwd)
         if thread:
-            identity["maveyyo"] = thread
-    final = bool(prompt) and (not identity.get("maveyyo") or bool(identity["maveyyo"].get("topic")))
+            identity["thread"] = thread
+    final = bool(prompt) and (not identity.get("thread") or bool(identity["thread"].get("topic")))
     try:
         os.makedirs(CACHE_DIR, exist_ok=True)
         with open(identity_path(session_id), "w", encoding="utf-8") as f:
@@ -1614,8 +1703,11 @@ def main():
     attached = claude_attach_panes() if any(record.get("kind") == "bg" for _, record, _, _ in records) else []
     pages, unreadable_pages = page_alerts()
 
+    accounts_prefix = os.path.normpath(accounts) + os.sep
     output_sessions = []
     for root, record, session_id, pid in records:
+        normalized_root = os.path.normpath(root)
+        account = os.path.basename(normalized_root) if normalized_root.startswith(accounts_prefix) else "default"
         cwd = record.get("cwd") if isinstance(record.get("cwd"), str) else None
         started_at = ms_num(record.get("startedAt"))
         transcript = transcript_path(root, cwd, session_id)
@@ -1658,6 +1750,7 @@ def main():
             "pages": page_list,
             "where": where,
             "agent": "claude",
+            "account": account,
         })
 
     try:
@@ -1672,6 +1765,7 @@ def main():
         output_sessions.append(session)
 
     for session in output_sessions:
+        session.setdefault("repo", repo_of(session.get("cwd")))
         emit(session)
     emit({
         "t": "meta",

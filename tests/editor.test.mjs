@@ -219,16 +219,17 @@ test("hv splits the pane of its own terminal and omits pane when it cannot tell"
   assert.equal("pane" in launched.split, false);
 });
 
-test("the Herdr FM27 Open applet hands files to the fm-editor mod", () => {
+test("the Herdr Open applet hands files to the editor mod it is built with", () => {
   const build = readFileSync(new URL("../tools/herdr-open/build.sh", import.meta.url), "utf8");
   const applescript = readFileSync(new URL("../tools/herdr-open/open.applescript", import.meta.url), "utf8");
   for (const name of ["build.sh", "open.applescript", "set-default.swift"]) {
     assert.ok(existsSync(new URL(`../tools/herdr-open/${name}`, import.meta.url)), name);
   }
-  assert.match(build, /APP_NAME="Herdr FM27 Open"/);
-  assert.match(build, /BUNDLE_ID="dev\.herdr\.fm27-open"/);
-  assert.match(build, /\$HOME\/\.config\/herdr-app\/mods\/fm-editor\/hv-open/);
-  assert.match(applescript, /mods\/fm-editor\/hv-open/);
+  assert.match(build, /APP_NAME="Herdr Open"/);
+  assert.match(build, /BUNDLE_ID="dev\.herdr\.open"/);
+  assert.match(build, /--mod\) MOD=/);
+  assert.match(build, /LAUNCHER="\$APP_HOME\/mods\/\$MOD\/hv-open"/);
+  assert.match(applescript, /mods\/@MOD@\/hv-open/);
   assert.doesNotMatch(build, /chiikawa/);
   assert.doesNotMatch(applescript, /chiikawa/);
 });

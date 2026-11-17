@@ -4,8 +4,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readlinkSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -14,9 +14,10 @@ const MERGE = join(ROOT, "tools/merge-keys.py");
 const INSTALL = join(ROOT, "tools/install.sh");
 const SOURCE = join(ROOT, "keys/fm27.json");
 const MODS = ["fm-chrome", "fm-squad", "fm-staff", "fm-club", "fm-live", "fm-editor"];
+const SHARED = process.env.HERDR_SHARED || join(homedir(), "git-repo", "herdr-shared");
 
 const box = () => mkdtempSync(join(tmpdir(), "fm27-tools-"));
-const merge = (target, source = SOURCE) => spawnSync("python3", ["-I", MERGE, target, source], { encoding: "utf8" });
+const merge = (target, source = SOURCE) => spawnSync("python3", ["-I", MERGE, target, source, "--backup-tag", "fm27"], { encoding: "utf8" });
 const section = (file) => JSON.parse(readFileSync(file, "utf8"))["layout:fm27"];
 
 test("merge-keys keeps every other section and adds the layout's own", () => {
@@ -83,12 +84,29 @@ test("merge-keys writes a fresh keys.json when none exists, with no backup", () 
   }
 });
 
-test("merge-keys does not create the keys folder when it is missing", () => {
+test("merge-keys creates a missing keys folder when it has keys to add", () => {
   const dir = box();
   try {
-    const run = merge(join(dir, "absent", "keys.json"));
-    assert.notEqual(run.status, 0);
-    assert.equal(existsSync(join(dir, "absent")), false);
+    const target = join(dir, "absent", "keys.json");
+    const run = merge(target);
+    assert.equal(run.status, 0, run.stderr);
+    assert.deepEqual(section(target), section(SOURCE));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("merge-keys keeps a binding the person already has and adds the rest of the layout", () => {
+  const dir = box();
+  try {
+    const target = join(dir, "keys.json");
+    writeFileSync(target, `${JSON.stringify({ "layout:fm27": { "ctrl-alt-p": "fm-chrome.mine" } }, null, 2)}\n`);
+    const run = merge(target);
+    assert.equal(run.status, 0, run.stderr);
+    const after = section(target);
+    assert.equal(after["ctrl-alt-p"], "fm-chrome.mine", "the person's own binding is kept");
+    assert.equal(after["cmd-0"], section(SOURCE)["cmd-0"], "the layout's other keys are added");
+    assert.match(run.stdout, /kept ctrl-alt-p/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -123,6 +141,72 @@ test("install.sh copies every mod with the shared tokens, the layout, theme and 
     assert.ok(existsSync(join(home, preview)), `the layout's preview ${preview} exists in the Herdr home`);
     assert.deepEqual(section(join(home, "keys.json")), section(SOURCE));
     assert.deepEqual(readFileSync(log, "utf8").trim().split("\n"), MODS.map((mod) => `check ${join(home, "mods", mod)}`));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+const LINKED = {
+  "fm-staff": ["cca", "usage-tap.sh", "usage-api.mjs", "codex-usage.mjs", "models.mjs"],
+  "fm-squad": ["scan.sh"],
+  "fm-editor": ["hv", "hv-open"],
+};
+
+test("a second install writes real files instead of writing through the shared links", {
+  skip: existsSync(join(SHARED, "tools/install.sh")) ? false : `herdr-shared is not checked out at ${SHARED}`,
+}, () => {
+  const dir = box();
+  try {
+    const home = join(dir, "home");
+    const sharedHome = join(dir, "herdr-shared");
+    const bin = join(dir, "bin");
+    mkdirSync(bin, { recursive: true });
+    const stub = join(bin, "herdr-app");
+    writeFileSync(stub, "#!/bin/sh\nexit 0\n");
+    chmodSync(stub, 0o755);
+
+    execFileSync("sh", [join(SHARED, "tools/install.sh")], {
+      env: { ...process.env, HERDR_SHARED_HOME: sharedHome },
+      stdio: "pipe",
+    });
+
+    const env = {
+      ...process.env,
+      PATH: `${bin}:${process.env.PATH}`,
+      HERDR_APP_HOME: home,
+      HERDR_SHARED_HOME: sharedHome,
+      HERDR_SHARED: SHARED,
+    };
+    const install = () => execFileSync("sh", [INSTALL], { env, stdio: "pipe" });
+    const assertLinked = (when) => {
+      for (const [mod, names] of Object.entries(LINKED)) {
+        for (const name of names) {
+          const installed = join(home, "mods", mod, name);
+          assert.ok(lstatSync(installed).isSymbolicLink(), `${mod}/${name} is a link ${when}`);
+          assert.equal(readlinkSync(installed), join(sharedHome, name), `${mod}/${name} points at the shared home ${when}`);
+        }
+      }
+    };
+
+    install();
+    assertLinked("after the first install");
+
+    // The marker stands in for the shared home drifting from this repo's vendored copy: a copy
+    // that wrote through the link would replace it.
+    const marker = "#!/bin/sh\n# marker: a reinstall must not write through the link\n";
+    const marked = join(sharedHome, "cca");
+    writeFileSync(marked, marker);
+
+    install();
+    assertLinked("after the second install");
+    assert.equal(readFileSync(marked, "utf8"), marker, "the second install wrote through the link into the shared home");
+    for (const names of Object.values(LINKED)) {
+      for (const name of names) {
+        if (name === "cca") continue;
+        assert.deepEqual(readFileSync(join(sharedHome, name)), readFileSync(join(SHARED, "bin", name)),
+          `the shared home's ${name} still matches herdr-shared after the second install`);
+      }
+    }
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

@@ -1,6 +1,12 @@
 #!/bin/sh
-# hv — open each file in the fm-editor mod beside the terminal that ran it.
+# hv — open each file in the editor mod beside the terminal that ran it.
 set -u
+# No readlink here: the mod id is the folder the file sits in, so every theme's copy works.
+MOD=${HV_MOD:-$(basename "$(dirname "$0")")}
+case $MOD in
+  *-editor) ;;
+  *) printf 'hv: %s is not an editor mod; set HV_MOD\n' "$MOD" >&2; exit 2 ;;
+esac
 # The Herdr Open applet runs this with launchd's PATH, which lacks ~/.local/bin.
 APP=${HERDR_APP:-$(command -v herdr-app || echo "$HOME/.local/bin/herdr-app")}
 TERMINAL=${HC_TERMINAL_ID:-}
@@ -22,7 +28,7 @@ for target in "$@"; do
   fi
   json=$(/usr/bin/python3 -I -c '
 import json, sys
-path, terminal, list_path = sys.argv[1], sys.argv[2], sys.argv[3]
+path, terminal, list_path, mod = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
 pane = None
 if terminal and list_path:
     try:
@@ -45,11 +51,11 @@ if terminal and list_path:
                     return found
         return None
     pane = walk(data)
-payload = {"direction": "right", "mod": "fm-editor", "props": {"file": path}}
+payload = {"direction": "right", "mod": mod, "props": {"file": path}}
 if pane:
     payload["pane"] = pane
 print(json.dumps(payload))
-' "$file" "$TERMINAL" "$LIST") || { status=1; continue; }
+' "$file" "$TERMINAL" "$LIST" "$MOD") || { status=1; continue; }
   "$APP" do pane.split "$json" >/dev/null || { printf 'hv: %s did not open\n' "$target" >&2; status=1; }
 done
 exit $status

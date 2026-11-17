@@ -252,7 +252,7 @@ export function topicOf(identity, key = null, objective = null) {
   if (!identity && !objective) return null;
   identity ??= {};
   const first = (value) => String(value).split(/(?<=[.?!])\s/)[0];
-  let topic = objective ?? identity.handoff ?? (identity.maveyyo?.topic ? first(identity.maveyyo.topic) : null) ?? identity.paste ?? null;
+  let topic = objective ?? identity.handoff ?? (identity.thread?.topic ? first(identity.thread.topic) : null) ?? identity.paste ?? null;
   if (!topic && identity.firstPrompt) {
     topic = first(String(identity.firstPrompt).replace(/https?:\/\/\S+/g, " ").replace(/\[Image #\d+\]/g, " ").replace(/`/g, "")
       .replace(/(?:~|\/)[\w.-]*(?:\/[\w.-]+){2,}/g, " ").replace(/^\s*\/[\w-]+\s+/, "")
@@ -793,11 +793,11 @@ export default class FmSquad extends View {
       const place = location && normalizeLabel(location) !== normalizeLabel(title) ? location : null;
       const keyTag = deadhd?.key && deadhd.key.toLowerCase() !== title.trim().toLowerCase() ? deadhd.key : null;
       const identity = raw.identity ?? null;
-      const spot = placeOf(raw.cwd, identity?.maveyyo ?? null);
+      const spot = placeOf(raw.cwd, identity?.thread ?? null);
       if (!spot.key && !spot.slack && deadhd?.key) spot.key = String(deadhd.key).toUpperCase();
       const topic = clip(firstNonEmpty(chosenTitle(raw.customTitle), hasChecklist ? deadhd.title : null, topicOf(identity, spot.key, spot.key ? this.meta?.objectives?.[spot.key] : null)), 120);
       const round = spot.key && Number.isFinite(identity?.round) ? identity.round : null;
-      const lane = clean(identity?.maveyyo?.lane);
+      const lane = clean(identity?.thread?.lane);
 
       const prs = [];
       if (hasChecklist && deadhd.pr?.href) {

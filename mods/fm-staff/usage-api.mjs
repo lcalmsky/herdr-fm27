@@ -1,5 +1,5 @@
 // Reads Claude Code's keychain credentials JSON on stdin, asks the usage endpoint /usage reads, and
-// prints {fetched_at, fable?: {used, resets_at}}. Exits 1 on any failure so cca keeps the last record.
+// prints {fetched_at, fable?: {used, resets_at}, seven_day?: {used, resets_at}}. Exits 1 on any failure so cca keeps the last record.
 
 import { realpathSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -12,6 +12,16 @@ export function fableOf(body) {
   return { used: row.percent, resets_at: Number.isFinite(at) ? Math.floor(at / 1000) : null };
 }
 
+// The endpoint's `limits` row for the whole week: kind "weekly_all". The status line tap keeps the
+// larger value within one window, so a reset pass that clears usage without moving resets_at never
+// reaches its file; this row does.
+export function weekOf(body) {
+  const row = (body?.limits ?? []).find((l) => l?.kind === "weekly_all");
+  if (!row || typeof row.percent !== "number") return null;
+  const at = Date.parse(row.resets_at);
+  return { used: row.percent, resets_at: Number.isFinite(at) ? Math.round(at / 1000) : null };
+}
+
 async function main() {
   let creds = "";
   for await (const chunk of process.stdin) creds += chunk;
@@ -21,8 +31,12 @@ async function main() {
     signal: AbortSignal.timeout(10000),
   });
   if (!r.ok) process.exit(1);
-  const fable = fableOf(await r.json());
-  process.stdout.write(JSON.stringify({ fetched_at: Math.floor(Date.now() / 1000), ...(fable && { fable }) }));
+  const body = await r.json();
+  const fable = fableOf(body);
+  const week = weekOf(body);
+  process.stdout.write(JSON.stringify({
+    fetched_at: Math.floor(Date.now() / 1000), ...(fable && { fable }), ...(week && { seven_day: week }),
+  }));
 }
 
 // Compared as real paths: a file URL escapes spaces and non-ASCII, and argv may go through a link.

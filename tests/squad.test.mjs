@@ -381,7 +381,7 @@ test("the ground is the repo plus its folder, Slack for a Maveyyo thread, the le
 test("the topic comes from the handoff, the Slack thread, a pasted brief or the first prompt, cleaned", () => {
   assert.equal(topicOf({ handoff: "WEB-1408 주문 내역 정리 — rolling-delivery 본 핸드오프" }, "WEB-1408"), "주문 내역 정리");
   assert.equal(topicOf({ handoff: "WEB-1435 알림 끄기 이유 묻기 (rolling-delivery)" }, "WEB-1435"), "알림 끄기 이유 묻기");
-  assert.equal(topicOf({ maveyyo: { topic: "새 기능 오픈 알림. OCR job c4f5e194, 실패 93건." } }),
+  assert.equal(topicOf({ thread: { topic: "새 기능 오픈 알림. OCR job c4f5e194, 실패 93건." } }),
     "새 기능 오픈 알림.");
   assert.equal(topicOf({ paste: "일본어 회화 튜터", firstPrompt: "<pasted_content> # 일본어 회화 튜터" }), "일본어 회화 튜터");
   assert.equal(topicOf({ firstPrompt: "[Image #1] 이거 `/relay` 스킬 때문에 앞 문장이 항상 경로야. 고쳐 줘" }), "/relay 스킬 때문에 앞 문장이 항상 경로야.");
@@ -399,8 +399,8 @@ test("a reply loses links, markdown and a bold heading before a list, but keeps 
 test("the Dossier lists the ticket, pull requests, Slack thread and reports in order", () => {
   const v = view([
     session("j", "busy", 3, { cwd: "/Users/me/git-repo/shop-api-WEB-1435", pr: { number: 9330, url: "https://github.com/acme/web/pull/9330" } }),
-    session("m", "idle", 3, { cwd: "/x/maveyyo-bot/sessions/C0EXAMPLE01-1793691052_993259",
-      identity: { maveyyo: { channel: "C0EXAMPLE01", lane: "prod", topic: "새 기능 오픈 알림." } } }),
+    session("m", "idle", 3, { cwd: "/x/threads/sessions/C0EXAMPLE01-1793691052_993259",
+      identity: { thread: { channel: "C0EXAMPLE01", lane: "prod", topic: "새 기능 오픈 알림." } } }),
     session("h", "busy", 3, { cwd: "/Users/me/git-repo/herdr-chiikawa-cards" }),
   ]);
   const item = (id) => { const m = v.buildModel(NOW); return [...m.attention, ...m.working, ...m.done].find((i) => i.sessionId === id); };

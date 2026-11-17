@@ -32,7 +32,9 @@ function sandbox(extraEnv = {}) {
   const quiet = stub("quiet.sh", "");
   const env = {
     ...process.env, HOME: home, TMPDIR: temp, CLAUDE_CONFIG_DIR: "",
-    PULSE_PS: quiet, PULSE_LSOF: quiet, ...extraEnv,
+    PULSE_PS: quiet, PULSE_LSOF: quiet,
+    HERDR_THREAD_SESSIONS: join(home, ".claude/state/threads/sessions"),
+    HERDR_GOALS_FILE: join(home, ".claude/state/goals/active-programs.json"), ...extraEnv,
   };
   const call = (expression) => JSON.parse(execFileSync("python3", ["-c", `${PYTHON}\nprint(json.dumps(${expression}, ensure_ascii=False))`], { env, encoding: "utf8" }));
   const scan = () => execFileSync("sh", [SCAN.pathname], { env, encoding: "utf8" }).trim().split("\n").map((line) => JSON.parse(line));
@@ -63,7 +65,7 @@ const codexRollout = (box, records, day = "2999/12/31") => box.put(
 test("a rolling-delivery objective is keyed by any ticket-shaped prefix, not a fixed list", () => {
   const box = sandbox();
   try {
-    box.put(".claude/state/rolling-delivery/active-programs.json", { programs: [
+    box.put(".claude/state/goals/active-programs.json", { programs: [
       { objective: "ABC-123 goal text", updated_at: "2026-11-06" },
       { objective: "no ticket key here", updated_at: "2026-11-05" },
       { objective: "abc-9 lowercase prefix is no key", updated_at: "2026-11-04" }] });
@@ -76,13 +78,13 @@ test("a rolling-delivery objective is keyed by any ticket-shaped prefix, not a f
 test("a garbled rolling-delivery file gives no objectives and never stops the scan", () => {
   const box = sandbox();
   try {
-    box.put(".claude/state/rolling-delivery/active-programs.json", { programs: [1, "x", null,
+    box.put(".claude/state/goals/active-programs.json", { programs: [1, "x", null,
       { objective: "WEB-1313 고도화 에픽: 부재 판단을 정한다 (PRD prd/x.md 의 P0). 조사 후 진행", updated_at: "2026-11-06" },
       { objective: "WEB-1313 예전 목표", updated_at: "2026-11-01" }] });
     assert.deepEqual(box.call("rd_objectives()"), { "WEB-1313": "고도화 에픽: 부재 판단을 정한다" });
-    box.put(".claude/state/rolling-delivery/active-programs.json", { programs: { a: 1 } });
+    box.put(".claude/state/goals/active-programs.json", { programs: { a: 1 } });
     assert.deepEqual(box.call("rd_objectives()"), {});
-    box.put(".claude/state/rolling-delivery/active-programs.json", "{not json");
+    box.put(".claude/state/goals/active-programs.json", "{not json");
     assert.deepEqual(box.call("rd_objectives()"), {});
     const meta = box.scan().at(-1);
     assert.equal(meta.t, "meta");
@@ -115,14 +117,14 @@ test("the identity takes the first real prompt, the handoff H1 it names, its rou
   }
 });
 
-test("a Maveyyo session reads its topic from thread memory, else the received event, and survives garbled state", () => {
+test("a thread-memory session reads its topic from thread memory, else the received event, and survives garbled state", () => {
   const box = sandbox();
   try {
-    const state = ".claude/state/maveyyo-bot";
+    const state = ".claude/state/threads";
     const withMemory = join(box.home, state, "sessions/C0EXAMPLE01-1793691052_993259");
     box.put(`${state}/threads/C0EXAMPLE01-1793691052_993259.json`, { lane: "prod", session: "garbled" });
     box.put(`${state}/memory/threads/C0EXAMPLE01-1793691052.993259.md`, "# 기억\n- 질문: 영업시간이 언제인가요?\n");
-    assert.deepEqual(box.call(`maveyyo_topic(${JSON.stringify(withMemory)})`),
+    assert.deepEqual(box.call(`thread_topic(${JSON.stringify(withMemory)})`),
       { channel: "C0EXAMPLE01", threadAt: 1793691052000, lane: "prod", label: null, topic: "영업시간이 언제인가요?" });
 
     const fromEvent = join(box.home, state, "sessions/C0EXAMPLE02-1793000000_111111");
@@ -130,23 +132,23 @@ test("a Maveyyo session reads its topic from thread memory, else the received ev
       '["received", "1793000000.111111"]',
       JSON.stringify({ type: "received", thread_ts: "1793000000.111111", text: "비밀번호를 잊어버렸어요" }),
     ].join("\n"));
-    assert.equal(box.call(`maveyyo_topic(${JSON.stringify(fromEvent)})`).topic, "비밀번호를 잊어버렸어요");
-    assert.equal(box.call(`maveyyo_topic("/x/not-a-thread")`), null);
+    assert.equal(box.call(`thread_topic(${JSON.stringify(fromEvent)})`).topic, "비밀번호를 잊어버렸어요");
+    assert.equal(box.call(`thread_topic("/x/not-a-thread")`), null);
   } finally {
     box.done();
   }
 });
 
-test("the identity cache is final only once the prompt and any Maveyyo topic are known", () => {
+test("the identity cache is final only once the prompt and any thread topic are known", () => {
   const box = sandbox();
   try {
     const transcript = box.put("t/mv.jsonl", user("스레드 답변해 줘"));
-    const cwd = join(box.home, ".claude/state/maveyyo-bot/sessions/C0EXAMPLE01-1790000000_000001");
-    const cache = join(box.temp, "herdr-pulse", "identity-mv1.json");
+    const cwd = join(box.home, ".claude/state/threads/sessions/C0EXAMPLE01-1790000000_000001");
+    const cache = join(box.temp, "herdr-pulse", "identity-v2-mv1.json");
     box.call(`session_identity(${JSON.stringify(transcript)}, "mv1", ${JSON.stringify(cwd)})`);
     assert.equal(JSON.parse(readFileSync(cache, "utf8")).final, false, "no topic yet, so the next scan reads again");
 
-    box.put(".claude/state/maveyyo-bot/memory/threads/C0EXAMPLE01-1790000000.000001.md", "- 원글: 로그인이 안 돼요\n");
+    box.put(".claude/state/threads/memory/threads/C0EXAMPLE01-1790000000.000001.md", "- 원글: 로그인이 안 돼요\n");
     box.call(`session_identity(${JSON.stringify(transcript)}, "mv1", ${JSON.stringify(cwd)})`);
     assert.equal(JSON.parse(readFileSync(cache, "utf8")).final, true);
 
