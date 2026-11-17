@@ -5,7 +5,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
 import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readlinkSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { homedir, tmpdir } from "node:os";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -14,7 +14,7 @@ const MERGE = join(ROOT, "tools/merge-keys.py");
 const INSTALL = join(ROOT, "tools/install.sh");
 const SOURCE = join(ROOT, "keys/fm27.json");
 const MODS = ["fm-chrome", "fm-squad", "fm-staff", "fm-club", "fm-live", "fm-editor"];
-const SHARED = process.env.HERDR_SHARED || join(homedir(), "git-repo", "herdr-shared");
+const SHARED = process.env.HERDR_SHARED || join(ROOT, "vendor", "herdr-shared");
 
 const box = () => mkdtempSync(join(tmpdir(), "fm27-tools-"));
 const merge = (target, source = SOURCE) => spawnSync("python3", ["-I", MERGE, target, source, "--backup-tag", "fm27"], { encoding: "utf8" });
@@ -153,7 +153,7 @@ const LINKED = {
 };
 
 test("a second install writes real files instead of writing through the shared links", {
-  skip: existsSync(join(SHARED, "tools/install.sh")) ? false : `herdr-shared is not checked out at ${SHARED}`,
+  skip: existsSync(join(SHARED, "tools/install.sh")) ? false : `herdr-shared is not checked out at ${SHARED}; run git submodule update --init`,
 }, () => {
   const dir = box();
   try {

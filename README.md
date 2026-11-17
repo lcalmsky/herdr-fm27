@@ -45,6 +45,8 @@ Or, from a checkout:
 
 The script copies `mods/fm-chrome`, `mods/fm-squad`, `mods/fm-staff`, `mods/fm-club`, `mods/fm-live` and `mods/fm-editor`, plus `layouts/fm27.json` (with its picker thumbnail `layouts/fm27.png`) and `themes/fm27.json`, into `${HERDR_APP_HOME:-$HOME/.config/herdr-app}`. It makes `cca`, `usage-tap.sh`, `hv`, `hv-open` and `scan.sh` executable, copies `shared/tokens.js` into each mod as `tokens.js`, merges `keys/fm27.json` into the person's `keys.json` while keeping any binding they already have (writing a `keys.json.bak-fm27-<timestamp>` copy only when it adds something) and runs `herdr-app check` on each mod. When the shared home `${HERDR_SHARED_HOME:-$HOME/.local/share/herdr-shared}` exists and `herdr-shared` is checked out, the installed `cca`, `usage-tap.sh`, `scan.sh`, `hv` and `hv-open` become links to it; without it the copies stay. Nothing is downloaded and no images are generated.
 
+The runtime files under `mods/` and `tools/` are copies generated from the [herdr-shared](https://github.com/lcalmsky/herdr-shared) submodule at `vendor/herdr-shared`. `git clone --recursive` is only needed for the drift check, not for installing.
+
 The merged section applies only while this layout shows:
 
 ```json

@@ -14,13 +14,17 @@
 
 `mods/fm-staff/` 의 `cca`, `usage-tap.sh`, `usage-api.mjs`, `codex-usage.mjs`, `models.mjs`,
 `mods/fm-squad/scan.sh`, `mods/fm-editor/` 의 `hv`, `hv-open`, `tools/merge-keys.py`,
-`tools/herdr-open/` 의 세 파일은 `~/git-repo/herdr-shared` 에서 온 사본이다. 이 저장소에서
-손으로 고치지 않는다. 고칠 것이 있으면 herdr-shared 에서 고치고 다시 vendor 한다.
+`tools/herdr-open/` 의 세 파일은 `vendor/herdr-shared` 서브모듈에서 생성한 사본이다. 이 저장소에서
+손으로 고치지 않는다. `herdr-shared.list` 가 그룹과 대상을 정하고, 사본은 그 서브모듈의
+`vendor/herdr-shared/tools/vendor.sh --list .` 가 다시 쓴다.
 
 ```sh
-~/git-repo/herdr-shared/tools/vendor.sh \
-  accounts mods/fm-staff scan mods/fm-squad editor mods/fm-editor \
-  herdr-open tools/herdr-open merge-keys tools
+vendor/herdr-shared/tools/vendor.sh --list .
 ```
 
-`tests/shared-vendor.test.mjs` 가 사본이 원본과 같은지 확인한다 (herdr-shared 가 없으면 건너뛴다).
+고칠 것이 있으면 herdr-shared 에서 고치고 push 한 뒤 herdr-shared 에서
+`tools/sync-themes.sh --commit --push` 를 돌린다. 이 명령이 이 저장소의 서브모듈을 올리고, 사본을
+다시 쓰고, 테스트하고, 커밋하고, push 한다.
+
+`tests/shared-vendor.test.mjs` 가 `vendor/herdr-shared/tools/check-vendor.sh` 로 사본이 서브모듈과
+같은지 확인한다 (서브모듈을 받지 않았으면 건너뛴다).

@@ -4,7 +4,7 @@ set -eu
 REPO=$(cd "$(dirname "$0")/.." && pwd)
 HOME_DIR=${HERDR_APP_HOME:-$HOME/.config/herdr-app}
 MODS="fm-chrome fm-squad fm-staff fm-club fm-live fm-editor"
-SHARED_LINK=${HERDR_SHARED:-$HOME/git-repo/herdr-shared}/tools/link-installed.sh
+SHARED_LINK=${HERDR_SHARED:-$REPO/vendor/herdr-shared}/tools/link-installed.sh
 SHARED_HOME=${HERDR_SHARED_HOME:-$HOME/.local/share/herdr-shared}
 for mod in $MODS; do
   mkdir -p "$HOME_DIR/mods/$mod"

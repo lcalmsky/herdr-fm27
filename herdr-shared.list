@@ -1,0 +1,5 @@
+accounts   mods/fm-staff
+scan       mods/fm-squad
+editor     mods/fm-editor
+merge-keys tools
+herdr-open tools/herdr-open
