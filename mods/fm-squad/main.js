@@ -6,7 +6,7 @@
 
 import { View, div, svg, PathBuilder, Background } from "gpui-kit";
 import { v_flex, h_flex, VirtualListScrollHandle } from "gpui-base";
-import { exec, run, appHome, settings, readTextFile, writeTextFile, terminals, panes, agents, spaces, focused, nextCommand, props, shared, setShared, openOverlay, closeOverlay, setAgentOrder, layout } from "herdr";
+import { exec, run, appHome, checking, settings, readTextFile, writeTextFile, terminals, panes, agents, spaces, focused, nextCommand, props, shared, setShared, openOverlay, closeOverlay, setAgentOrder, layout } from "herdr";
 import { C, FONT, FS, R, STATE, GROUP, NAT, KEY, SCREEN_STACK } from "./tokens.js";
 
 export const SQUAD_KEY = KEY.squad;
@@ -450,6 +450,7 @@ export default class FmSquad extends View {
       this.active = 0;
       this.error = null;
       this.stopError = null;
+      this.linkError = null;
       // Focus can't change during render; the timer catches the popup once it is on screen.
       this.handle.focus();
       cx.timer.after(50, () => this.handle.focus());
@@ -494,6 +495,7 @@ export default class FmSquad extends View {
     this.navTarget = null;
     this.width = 0;
     this.inboxFilter = "all";
+    if (checking()) return;
     cx.spawn(async (later) => {
       setConfig(await readConfig());
       later.notify();
@@ -1525,8 +1527,10 @@ export default class FmSquad extends View {
     this.sel = item.sessionId;
     cx.notify();
     const links = linksOf(item);
-    // A Claude Code session in a live terminal with no checklist yet can be asked to show one.
-    const showChecklist = Boolean(item.terminal) && item.raw?.t === "s" && !item.hasChecklist;
+    // A Claude Code session in a live terminal with no checklist yet can be asked to show one; deadhd is
+    // a Claude skill. A record without `agent` predates scan.sh naming it and is Claude's.
+    const showChecklist = Boolean(item.terminal) && item.raw?.t === "s" && !item.hasChecklist
+      && (item.raw?.agent ?? "claude") === "claude";
     const stopId = item.backgrounded ? item.raw.jobId ?? item.where.attachId ?? null : null;
     openOverlay({ mod: "fm-squad", kind: "popup", ...(at ? { at } : {}), width: LINKS_W, height: linksMenuHeight(links.length, showChecklist, Boolean(stopId)),
       props: { role: "links", head: ticketOf(item) ?? (item.spot?.slack ? "Slack" : item.spot?.label ?? "Session"),
@@ -2201,14 +2205,14 @@ export default class FmSquad extends View {
   linksMenu() {
     const { head, topic, links = [], showChecklist = false, stopId = null } = props() ?? {};
     const rows = [...(stopId ? [{ stop: true }] : []), ...(showChecklist ? [{ checklist: true }] : []), ...links];
-    const row = (id, label, meta, hot, active, action) => h_flex().id(id).h(34).flex_none().px(8).gap(8).rounded(R.r1)
+    const row = (id, label, meta, hot, active, action, error = null) => h_flex().id(id).h(34).flex_none().px(8).gap(8).rounded(R.r1)
       .items_center().cursor_pointer()
       .when(active, (el) => el.bg(C.panel3))
       .hover((style) => style.bg(C.veil1))
       .on_click((_event, cx) => action(cx))
       .child(div().flex_1().min_w(0).truncate().text_size(FS.sm).font_family(FONT.body).font_semibold().text_color(C.ink).child(label))
-      .when(Boolean(meta), (el) => el.child(div().flex_none().max_w(110).truncate().text_size(FS.xs).font_family(FONT.body)
-        .text_color(C.ink3).child(meta)))
+      .when(Boolean(meta || error), (el) => el.child(div().flex_none().max_w(110).truncate().text_size(FS.xs).font_family(FONT.body)
+        .text_color(error ? C.needs : C.ink3).child(error ?? meta)))
       .when(Boolean(hot), (el) => el.child(keycap(String(hot).toUpperCase())));
     const checklistRow = h_flex().id("link-checklist").h(34).flex_none().px(8).gap(8).rounded(R.r1)
       .items_center().cursor_pointer()
@@ -2247,7 +2251,8 @@ export default class FmSquad extends View {
       .when(links.length === 0, (el) => el.child(h_flex().h(34).px(8).items_center()
         .child(text("No links on this session", FS.sm, C.ink3))))
       .children(links.map((link, index) => row(`link-${index}`, link.label, link.meta, link.hot,
-        index + offset === this.active, (cx) => this.openLink(link, cx))))
+        index + offset === this.active, (cx) => this.openLink(link, cx),
+        this.linkError?.url === link.url ? this.linkError.text : null)))
       .when(links.length > 0, (el) => el
         .child(div().h(1).mx(6).my(4).flex_none().bg(C.lineSoft))
         .child(row("link-copy", "Copy all links", null, null, false, (cx) => this.copyLinks(links, cx))));
@@ -2310,10 +2315,25 @@ export default class FmSquad extends View {
   }
 
   // http(s) goes to the system's URL handler; a local report file (scan.sh vouched it openable) to `open`.
+  // Closing the popup ends this copy, so a failed `open` keeps it up to show the error.
   openLink(link, cx) {
-    if (/^https?:\/\//.test(link.url)) cx.open_url(link.url);
-    else exec("open", [link.url]);
-    closeOverlay(props().overlay);
+    if (/^https?:\/\//.test(link.url)) {
+      cx.open_url(link.url);
+      closeOverlay(props().overlay);
+      return;
+    }
+    this.linkError = null;
+    cx.spawn(async (cx) => {
+      let result = null;
+      try { result = await exec("open", [link.url]); } catch {}
+      if (!result || result.code !== 0) {
+        // The row's meta slot is 110 px wide, so the error is the short form of openPage's notice.
+        this.linkError = { url: link.url, text: "Couldn't open" };
+        cx.notify();
+        return;
+      }
+      closeOverlay(props().overlay);
+    });
   }
 
   copyLinks(links, cx) {

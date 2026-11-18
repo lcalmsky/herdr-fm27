@@ -74,7 +74,7 @@ test("continuing as a model puts its {id}-substituted template in the pane comma
     const session = { id: "12345678-1234-1234-1234-123456789abc", cwd: "/tmp/my work" };
     v.continueAs(model, session);
     assert.deepEqual(globalThis.herdrRuns, [["pane.split", { direction: "right", argv: ["sh", "-lc",
-      `cd '/tmp/my work' && ${launchFor(model, resumeArgs(model, session.id))}`] }]]);
+      `cd '/tmp/my work' || exit 1; ${launchFor(model, resumeArgs(model, session.id))}`] }]]);
     assert.match(globalThis.herdrRuns[0][1].argv[2], /--resume 12345678-1234-1234-1234-123456789abc --continue/);
   } finally {
     globalThis.herdrRuns = undefined;
@@ -90,7 +90,7 @@ test("continuing as a Claude account row resumes under that account's config fol
     v.continueAs(account, session);
     await new Promise((r) => setTimeout(r, 0));
     assert.deepEqual(globalThis.herdrRuns, [["pane.split", { direction: "right", argv: ["sh", "-lc",
-      `cd '/tmp/my work' && ${launchFor("personal", " --resume 12345678-1234-1234-1234-123456789abc")}`] }]]);
+      `cd '/tmp/my work' || exit 1; ${launchFor("personal", " --resume 12345678-1234-1234-1234-123456789abc")}`] }]]);
   } finally {
     globalThis.herdrRuns = undefined;
   }
@@ -913,6 +913,70 @@ test("the screen renders with nothing in Herdr and with fm.squad null", () => {
         "no accounts read, no usage, no agents from Herdr");
     }
   } finally {
+    globalThis.herdrState = undefined;
+  }
+});
+
+test("a resumed pane whose session folder is gone stops at cd instead of starting the agent elsewhere", () => {
+  const dir = mkdtempSync(join(tmpdir(), "fm-staff-cd-"));
+  const marker = join(dir, "started");
+  const fake = join(dir, "fake-agent");
+  writeFileSync(fake, `#!/bin/sh\necho "$PWD" > '${marker}'\n`);
+  chmodSync(fake, 0o755);
+  copyFileSync(fake, join(dir, "claude"));
+  chmodSync(join(dir, "claude"), 0o755);
+  const session = { id: "12345678-1234-1234-1234-123456789abc", cwd: join(dir, "gone") };
+  const commandFor = (target) => {
+    const v = Object.create(ClaudeAccounts.prototype);
+    v.launch = "claude";
+    v.closeSelf = () => {};
+    globalThis.herdrRuns = [];
+    v.continueAs(target, session);
+    const argv = globalThis.herdrRuns[0][1].argv;
+    globalThis.herdrRuns = undefined;
+    return argv[2];
+  };
+  try {
+    // Both env prefixes start with `unset CLAUDE_CONFIG_DIR;`, whose `;` used to end the `cd … &&` chain.
+    for (const target of ["default", { name: "grok", kind: "model", command: "grok", resume: "--resume {id}" }]) {
+      rmSync(marker, { force: true });
+      // `sh -c`, not the pane's `sh -lc`: a login shell's profile could put a real claude ahead of the fake one.
+      const r = spawnSync("sh", ["-c", commandFor(target)], {
+        cwd: dir, env: { PATH: `${dir}:/usr/bin:/bin`, SHELL: fake, HOME: dir }, encoding: "utf8",
+      });
+      assert.notEqual(r.status, 0, `${JSON.stringify(target)} exits non-zero`);
+      assert.equal(existsSync(marker), false, `${JSON.stringify(target)} must not start in ${existsSync(marker) ? readFileSync(marker, "utf8").trim() : "?"}`);
+    }
+    mkdirSync(session.cwd);
+    rmSync(marker, { force: true });
+    const r = spawnSync("sh", ["-c", commandFor("default")], { cwd: dir, env: { PATH: `${dir}:/usr/bin:/bin`, SHELL: fake, HOME: dir }, encoding: "utf8" });
+    assert.equal(r.status, 0, r.stderr);
+    assert.equal(readFileSync(marker, "utf8").trim(), session.cwd, "with the folder there it starts inside it");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("under herdr-app check the Staff screen runs no cca, timer or agent lookup, and still draws", () => {
+  const timers = [];
+  const spawns = [];
+  const cx = {
+    focus_handle: () => ({ focus() {}, is_focused: () => false }),
+    spawn: (fn) => spawns.push(fn),
+    timer: { every: (...args) => timers.push(args), after: (...args) => timers.push(args) },
+    notify() {},
+  };
+  globalThis.herdrChecking = true;
+  globalThis.herdrExec = [];
+  globalThis.herdrState = { props: { role: "screen" } };
+  try {
+    const v = new ClaudeAccounts();
+    v.init({}, cx);
+    assert.deepEqual({ exec: globalThis.herdrExec.length, timers: timers.length, spawns: spawns.length }, { exec: 0, timers: 0, spawns: 0 });
+    assert.doesNotThrow(() => v.render(cx));
+  } finally {
+    globalThis.herdrChecking = undefined;
+    globalThis.herdrExec = undefined;
     globalThis.herdrState = undefined;
   }
 });

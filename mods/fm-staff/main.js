@@ -5,7 +5,7 @@
 
 import { View, div, PathBuilder, Background } from "gpui-kit";
 import { v_flex, h_flex, InputState, Input } from "gpui-base";
-import { agents, terminals, focused, run, exec, props, appHome, openOverlay, closeOverlay, knownAgents, shared, nextCommand } from "herdr";
+import { agents, terminals, focused, run, exec, checking, props, appHome, openOverlay, closeOverlay, knownAgents, shared, nextCommand } from "herdr";
 import { C, FONT, FS, R } from "./tokens.js";
 
 const FOCUS_WATCH_MS = 100;
@@ -361,6 +361,7 @@ export default class FmStaff extends View {
     this.handle = cx.focus_handle();
     this.at = 0;
     this.wasFocused = false;
+    if (checking()) return;
     cx.timer.every(FOCUS_WATCH_MS, (cx) => this.watchFocus(cx));
     cx.timer.every(30000, (cx) => this.readAccounts(cx));
     cx.spawn(async (cx) => { this.launch = await readLaunch(); cx.notify(); });
@@ -712,13 +713,14 @@ export default class FmStaff extends View {
     if (!ACCOUNT_NAME.test(name ?? "") || !SESSION_ID.test(session?.id ?? "") || !session?.cwd) return;
     const args = resumeArgs(model, session.id);
     if (!args) return;
-    // pane.split takes no folder, so the shell changes into the session's cwd first.
+    // pane.split takes no folder, so the shell changes into the session's cwd first. The launch line
+    // starts with `unset …;`, which would end an `&&` chain, so a failed cd exits on its own.
     const cwd = `'${session.cwd.replace(/'/g, "'\\''")}'`;
     if (model) {
-      this.startPane(["sh", "-lc", `cd ${cwd} && ${launchFor(model, args)}`]);
+      this.startPane(["sh", "-lc", `cd ${cwd} || exit 1; ${launchFor(model, args)}`]);
       return;
     }
-    this.withLaunch((command) => this.startPane(["sh", "-lc", `cd ${cwd} && ${launchFor(name, args, command)}`]));
+    this.withLaunch((command) => this.startPane(["sh", "-lc", `cd ${cwd} || exit 1; ${launchFor(name, args, command)}`]));
   }
 
   // readAccounts keeps the focused pane's pid in this.focusKey, so the ring's key has its own name.

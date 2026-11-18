@@ -3,16 +3,19 @@ const state = () => globalThis.herdrState ?? {};
 export const agents = () => state().agents ?? [];
 export const terminals = () => state().terminals ?? [];
 export const panes = () => state().panes ?? [];
-export const spaces = () => state().spaces ?? [];
+// Herdr builds new objects on every call, so identity never holds between two calls.
+export const spaces = () => structuredClone(state().spaces ?? []);
 export const props = () => state().props ?? {};
 export const shared = (name) => state().shared?.[name] ?? null;
 export const setShared = (name, value) => { const s = state(); s.shared = { ...(s.shared ?? {}), [name]: value }; globalThis.herdrShared?.push([name, value]); return null; };
 export const run = (...args) => { globalThis.herdrRuns?.push(args); };
 export const exec = async (...args) => {
   globalThis.herdrExec?.push(args);
+  if (globalThis.herdrExecError) throw new Error(globalThis.herdrExecError);
   return globalThis.herdrExecResult ?? { code: 0, stdout: "", stderr: "" };
 };
 export const appHome = () => "/tmp";
+export const checking = () => Boolean(globalThis.herdrChecking);
 export const settings = () => state().settings ?? { zoom: 1 };
 export const readTextFile = async (path) => globalThis.herdrFiles?.[path] ?? null;
 export const writeTextFile = async (path, text) => { if (globalThis.herdrWriteError) throw new Error(globalThis.herdrWriteError); if (globalThis.herdrFiles) globalThis.herdrFiles[path] = text; return null; };

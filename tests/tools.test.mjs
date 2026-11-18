@@ -211,3 +211,9 @@ test("a second install writes real files instead of writing through the shared l
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test("the layout leaves the terminal font size to settings.json, which the ⌘= / ⌘- / ⌘0 keys rewrite", () => {
+  // Herdr: layout values override settings.json, so a font_size here would make those keys do nothing.
+  const layout = JSON.parse(readFileSync(join(ROOT, "layouts/fm27.json"), "utf8"));
+  assert.equal("font_size" in layout, false);
+});

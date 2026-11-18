@@ -88,11 +88,11 @@ test("topBarLayout: scouted down from everything to icon, then the date line, th
   assert.deepEqual(topBarLayout(undefined), TOP_BAR_STEPS[0]);
 });
 
-const renderChrome = (role, state) => {
+const renderChrome = (role, state, width = 0) => {
   globalThis.herdrState = state;
   const v = new FmChrome();
   Object.assign(v, {
-    role, sub: {}, editing: false, query: "", clock: "16:05", width: 0,
+    role, sub: {}, editing: false, query: "", clock: "16:05", width,
     handle: { focus() {}, release() {}, is_focused: () => false },
   });
   return v.render({ notify() {}, timer: { after() {}, every() {} } });
@@ -268,5 +268,26 @@ test("the sub bar follows the inbox filter the squad publishes, and its own clic
     assert.equal(v.sub.inbox, "all", "a later inbox change wins again");
   } finally {
     globalThis.herdrState = undefined;
+  }
+});
+
+test("the top bar renders at every width step, including the icon-only Scout below 1480 px", () => {
+  try {
+    for (const width of [1680, 1520, 1500, 1480, 1479, 1440, 1410, 1380, 1300, 1230, 900, 400]) {
+      assert.doesNotThrow(() => renderChrome("top", {}, width), `width ${width}`);
+    }
+  } finally {
+    globalThis.herdrState = undefined;
+  }
+});
+
+test("the club switcher counts the active ground's place even though every spaces() call is a new list", () => {
+  globalThis.uiTexts = [];
+  try {
+    renderChrome("top", { spaces: [{ id: "a", name: "api" }, { id: "b", name: "web", active: true }, { id: "c", name: "docs" }] }, 1680);
+    assert.ok(globalThis.uiTexts.includes("Ground 2 of 3"), globalThis.uiTexts.filter((t) => t.startsWith("Ground")).join());
+  } finally {
+    globalThis.herdrState = undefined;
+    globalThis.uiTexts = undefined;
   }
 });

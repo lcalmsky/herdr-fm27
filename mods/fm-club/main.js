@@ -7,7 +7,7 @@
 
 import { View, div, svg, PathBuilder, Background } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
-import { spaces, agents, terminals, panes, exec, run, openOverlay, closeOverlay, props, shared, home, appHome, readTextFile } from "herdr";
+import { spaces, agents, terminals, panes, exec, checking, run, openOverlay, closeOverlay, props, shared, home, appHome, readTextFile } from "herdr";
 import { C, FONT, FS, R, KEY } from "./tokens.js";
 
 const IDLE_MS = 10 * 60 * 1000;
@@ -194,14 +194,6 @@ export function railKey(key, at, count) {
 
 export default class FMClub extends View {
   init(_props, cx) {
-    cx.spawn(async (later) => {
-      try {
-        setRepoPrefixes(JSON.parse(await readTextFile(`${appHome()}/fm27.json`))?.repos);
-      } catch {
-        setRepoPrefixes([]);
-      }
-      later.notify();
-    });
     const p = props() ?? {};
     this.role = p.role ?? (p.overlay ? "switcher" : "screen");
     this.keyboard = false;
@@ -212,6 +204,15 @@ export default class FMClub extends View {
     this.reading = false;
     this.handle = cx.focus_handle();
     if (this.role === "screen") this.btnHandles = [cx.focus_handle(), cx.focus_handle()];
+    if (checking()) return;
+    cx.spawn(async (later) => {
+      try {
+        setRepoPrefixes(JSON.parse(await readTextFile(`${appHome()}/fm27.json`))?.repos);
+      } catch {
+        setRepoPrefixes([]);
+      }
+      later.notify();
+    });
     cx.timer.every(REPO_MS, (cx) => this.readRepos(cx));
     if (this.role === "screen") {
       cx.timer.every(30000, (cx) => cx.notify());
@@ -479,21 +480,29 @@ export default class FMClub extends View {
       .hover((h) => h.bg(C.veil1))
       .when(lit, (el) => el.child(this.cursorBar()))
       .tooltip(this.tipOf(entry, shells, idleAges))
-      .on_mouse_down("left", (_event, cx) => { cx.stop_propagation(); this.press = entry; })
+      .on_mouse_down("left", (_event, cx) => { cx.stop_propagation(); this.pressRow(entry); })
       .on_mouse_down("right", () => openOverlay({ mod: "menu", kind: "popup", width: 200, height: 260,
         props: { tab: "space", target: { id: entry.space.id } } }))
-      .on_mouse_up("left", () => {
-        const from = this.press;
-        this.press = null;
-        if (from && from !== entry) {
-          this.moveOnto(from, entry, groups);
-          return;
-        }
-        this.at = order.indexOf(entry);
-        this.select(entry);
-      })
+      .on_mouse_up("left", () => this.releaseRow(entry, groups, order))
       .child(this.nameLabel(entry, lit))
       .child(this.crewColumn(entry, shells, idleAges));
+  }
+
+  // Every render builds new row objects, so a press is held by row id and found again in the rows of
+  // the render the release lands in.
+  pressRow(entry) {
+    this.press = entry.id;
+  }
+
+  releaseRow(entry, groups, order) {
+    const from = this.press === null ? null : order.find((row) => row.id === this.press) ?? null;
+    this.press = null;
+    if (from && from.id !== entry.id) {
+      this.moveOnto(from, entry, groups);
+      return;
+    }
+    this.at = order.indexOf(entry);
+    this.select(entry);
   }
 
   // New space and Settings keep the old bottom block's keyboard: each takes focus and ↩/Space.

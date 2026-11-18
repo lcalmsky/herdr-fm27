@@ -517,7 +517,8 @@ test("the Dossier popup opens http links through the system, local reports throu
   const opened = [];
   const copied = [];
   let stopped = 0;
-  const cx = { open_url: (url) => opened.push(url), write_to_clipboard: (text) => copied.push(text), stop_propagation: () => { stopped += 1; }, notify() {} };
+  const cx = { open_url: (url) => opened.push(url), write_to_clipboard: (text) => copied.push(text), stop_propagation: () => { stopped += 1; }, notify() {},
+    spawn(fn) { fn(cx); } };
   const v = new FmSquad();
   Object.assign(v, { role: "links", active: 0 });
   const links = [
@@ -1616,5 +1617,90 @@ test("the inbox has a calm empty body and falls back to it when the picked row v
     assert.doesNotThrow(() => v.inboxEmpty());
   } finally {
     globalThis.herdrState = undefined;
+  }
+});
+
+test("Show game plan is offered to a Claude session only; Codex and Gemini never get the deadhd prompt", () => {
+  const state = { terminals: [{ address: "t1b1", state: "live", cwd: "/repo/cards" }] };
+  const card = (id, extra) => session(id, "busy", 3, { cwd: "/repo/cards", where: { kind: "herdr-app", terminalId: "t1b1" }, ...extra });
+  const v = view([card("cl", { agent: "claude" }), card("cx", { agent: "codex" }), card("gm", { agent: "gemini" }), card("old", {})], state);
+  const open = (key) => {
+    globalThis.herdrOverlays = [];
+    v.openLinks(key, { notify() {} });
+    return globalThis.herdrOverlays[0];
+  };
+  try {
+    assert.equal(open("row-cl").props.showChecklist, true);
+    assert.equal(open("row-cx").props.showChecklist, false, "a Codex session has no deadhd skill");
+    assert.equal(open("row-gm").props.showChecklist, false, "a Gemini session has no deadhd skill");
+    assert.equal(open("row-old").props.showChecklist, true, "a record from before scan.sh named the agent is Claude's");
+    assert.equal(open("row-cx").height, linksMenuHeight(0, false), "the popup is sized without the row");
+  } finally {
+    globalThis.herdrOverlays = undefined;
+    globalThis.herdrState = {};
+  }
+});
+
+test("a local report open cannot open keeps the Dossier up and says so on its row; a good one closes it", async () => {
+  const page = { kind: "page", label: "Progress", url: "/tmp/page.html", hot: "g" };
+  const tryOpen = async (setup) => {
+    globalThis.herdrState = { props: { role: "links", overlay: "o9", links: [page] } };
+    globalThis.herdrClosed = [];
+    globalThis.herdrExec = [];
+    setup();
+    const v = new FmSquad();
+    Object.assign(v, { role: "links", active: 0, error: null, stopError: null });
+    let task;
+    const cx = { notify() {}, open_url() { throw new Error("a file path went to open_url"); }, spawn(fn) { task = fn(cx); } };
+    v.openLink(page, cx);
+    await task;
+    return { v, closed: globalThis.herdrClosed, exec: globalThis.herdrExec };
+  };
+  try {
+    const rejected = await tryOpen(() => { globalThis.herdrExecError = "spawn open ENOENT"; });
+    assert.deepEqual(rejected.closed, [], "a rejected open leaves the popup up");
+    assert.deepEqual(rejected.v.linkError, { url: "/tmp/page.html", text: "Couldn't open" });
+    globalThis.herdrExecError = undefined;
+    const failed = await tryOpen(() => { globalThis.herdrExecResult = { code: 1, stdout: "", stderr: "The file /tmp/page.html does not exist." }; });
+    assert.deepEqual(failed.closed, []);
+    assert.equal(failed.v.linkError.url, "/tmp/page.html");
+    assert.doesNotThrow(() => failed.v.render({ notify() {} }), "the popup draws the error row");
+    const ok = await tryOpen(() => { globalThis.herdrExecResult = { code: 0, stdout: "", stderr: "" }; });
+    assert.deepEqual(ok.exec, [["open", ["/tmp/page.html"]]]);
+    assert.deepEqual(ok.closed, ["o9"], "an opened report closes the popup");
+    assert.equal(ok.v.linkError, null);
+  } finally {
+    globalThis.herdrExecError = undefined;
+    globalThis.herdrExecResult = undefined;
+    globalThis.herdrExec = undefined;
+    globalThis.herdrClosed = undefined;
+    globalThis.herdrState = {};
+  }
+});
+
+test("under herdr-app check the squad starts no scan, timer, config read or shared write, and still draws", () => {
+  const timers = [];
+  const spawns = [];
+  const cx = {
+    focus_handle: () => ({ focus() {}, is_focused: () => false }),
+    spawn: (fn) => spawns.push(fn),
+    timer: { every: (...args) => timers.push(args), after: (...args) => timers.push(args) },
+    notify() {},
+  };
+  globalThis.herdrChecking = true;
+  globalThis.herdrExec = [];
+  globalThis.herdrShared = [];
+  globalThis.herdrState = {};
+  try {
+    const v = new FmSquad();
+    v.init({}, cx);
+    assert.deepEqual({ exec: globalThis.herdrExec.length, shared: globalThis.herdrShared.length, timers: timers.length, spawns: spawns.length },
+      { exec: 0, shared: 0, timers: 0, spawns: 0 });
+    assert.doesNotThrow(() => v.render(cx));
+  } finally {
+    globalThis.herdrChecking = undefined;
+    globalThis.herdrExec = undefined;
+    globalThis.herdrShared = undefined;
+    globalThis.herdrState = {};
   }
 });

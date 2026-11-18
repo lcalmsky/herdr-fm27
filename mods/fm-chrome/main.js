@@ -267,8 +267,9 @@ export default class FmChrome extends View {
     const squad = shared(KEY.squad) ?? {};
     const counts = squad.counts ?? {};
     const history = squad.history ?? {};
-    const session = spaces().find((space) => space.active) ?? null;
-    const index = session ? spaces().indexOf(session) + 1 : 0;
+    const grounds = spaces();
+    const index = grounds.findIndex((space) => space.active) + 1;
+    const session = index > 0 ? grounds[index - 1] : null;
     const screen = currentScreen(layout(), shared(KEY.screen));
     const cont = continueLabel(squad.continue);
     const unread = squad.reports?.unread ?? 0;
@@ -297,7 +298,7 @@ export default class FmChrome extends View {
         .child(div().text_size(FS.h).font_family(FONT.display).font_weight(700).text_color(C.navInk).truncate()
           .child(groundName(session, squad.places).toUpperCase()))
         .child(div().text_size(FS.sm).font_family(FONT.body).font_weight(500).text_color(C.navInk).opacity(0.7).truncate()
-          .child(groundSub(index, spaces().length)))))
+          .child(groundSub(index, grounds.length)))))
       .child(svg("mods/fm-chrome/art/caret.svg").size(10).text_color(C.navInk).opacity(0.7));
 
     const menuItem = (entry) => {
@@ -319,7 +320,7 @@ export default class FmChrome extends View {
 
     const shown = this.editing ? this.query : String(squad.query ?? "");
     const scoutIcon = bar.scout === "icon";
-    const searchBox = h_flex().id("scout").w(bar.scout).h(32).flex_none().items_center().rounded(R.r1)
+    const searchBox = h_flex().id("scout").w(scoutIcon ? 32 : bar.scout).h(32).flex_none().items_center().rounded(R.r1)
       .bg(C.shade1).cursor_text().track_focus(this.handle).tab_index(0)
       .when(scoutIcon, (el) => el.justify_center()).when(!scoutIcon, (el) => el.px(12).gap(8))
       .on_mouse_down("left", (_e, cx) => {

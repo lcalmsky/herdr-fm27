@@ -217,3 +217,59 @@ test("the club screen and the switcher draw the grounds with their crew's pills"
   v.role = "switcher";
   assert.ok(v.render({}));
 });
+
+test("a click on a pitch survives a redraw between press and release, and a drag still moves the space", () => {
+  globalThis.herdrRuns = [];
+  globalThis.herdrState = {
+    spaces: [{ id: "b1", name: "herdr-fm27", tabs: [{ id: "b1-t" }] }, { id: "w1", name: "web-1408-ai", tabs: [{ id: "w1-t" }] }],
+    terminals: [{ address: "t1", cwd: "/A", program: {} }, { address: "t2", cwd: "/A/wt", program: {} }],
+    panes: [{ terminal: "t1", tab: "b1-t" }, { terminal: "t2", tab: "w1-t" }],
+  };
+  const v = new FMClub();
+  Object.assign(v, { role: "screen", at: 0, keyboard: false, turns: {}, press: null,
+    repos: { "/A": { common: "/A/.git", base: true }, "/A/wt": { common: "/A/.git", base: false } } });
+  try {
+    // Each render builds its rows anew, as the focus watch, the 30 s tick or a squad publish do mid-click.
+    v.pressRow(v.tree().order[1]);
+    const redrawn = v.tree();
+    v.releaseRow(redrawn.order[1], redrawn.groups, redrawn.order);
+    assert.deepEqual(globalThis.herdrRuns, [["space.select", { id: "w1" }]], "the click selects its space");
+    assert.equal(v.at, 1);
+    globalThis.herdrRuns = [];
+    v.pressRow(v.tree().order[1]);
+    const later = v.tree();
+    v.releaseRow(later.order[0], later.groups, later.order);
+    assert.deepEqual(globalThis.herdrRuns, [["space.move", { id: "w1", index: 1 }]], "a drag onto the home pitch moves there");
+    assert.equal(v.press, null);
+  } finally {
+    globalThis.herdrRuns = undefined;
+    globalThis.herdrState = undefined;
+  }
+});
+
+test("under herdr-app check the Club screen runs no git, timer or config read, and still draws", () => {
+  const timers = [];
+  const spawns = [];
+  const cx = {
+    focus_handle: () => ({ focus() {}, is_focused: () => false }),
+    spawn: (fn) => spawns.push(fn),
+    timer: { every: (...args) => timers.push(args), after: (...args) => timers.push(args) },
+    notify() {},
+  };
+  globalThis.herdrChecking = true;
+  globalThis.herdrExec = [];
+  globalThis.herdrState = { props: {} };
+  try {
+    for (const role of ["screen", "switcher"]) {
+      globalThis.herdrState = { props: { role } };
+      const v = new FMClub();
+      v.init({}, cx);
+      assert.deepEqual({ exec: globalThis.herdrExec.length, timers: timers.length, spawns: spawns.length }, { exec: 0, timers: 0, spawns: 0 }, role);
+      assert.doesNotThrow(() => v.render(cx), role);
+    }
+  } finally {
+    globalThis.herdrChecking = undefined;
+    globalThis.herdrExec = undefined;
+    globalThis.herdrState = undefined;
+  }
+});

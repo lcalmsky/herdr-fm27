@@ -1,5 +1,9 @@
 // A chainable stand-in for gpui elements: every builder method returns the element itself.
 let inRow = false;
+// Herdr rejects anything else in a length setter (`w expects a length ... got "icon"`).
+const LENGTH_SETTERS = new Set(["w", "h", "min_w", "max_w", "min_h", "max_h", "size"]);
+const isLength = (v) => (typeof v === "number" && Number.isFinite(v))
+  || (typeof v === "string" && /^(-?\d+(\.\d+)?(px|rem|%)|auto)$/.test(v));
 const element = () => {
   const el = new Proxy(function () {}, {
     get: (target, key) => {
@@ -7,7 +11,15 @@ const element = () => {
       if (inRow && typeof key === "string" && key.startsWith("on_")) {
         return () => { throw new Error(`${key} inside a virtual list row`); };
       }
+      if (LENGTH_SETTERS.has(key)) {
+        return (value) => {
+          if (!isLength(value)) throw new Error(`\`${key}\` expects a length; got ${JSON.stringify(value)}`);
+          return element();
+        };
+      }
       if (key === "when") return (cond, cb) => (cond ? cb(el) : el);
+      // Tests that read drawn text set globalThis.uiTexts = [].
+      if (key === "child") return (value) => { if (typeof value === "string") globalThis.uiTexts?.push(value); return element(); };
       return () => element();
     },
   });
@@ -26,6 +38,7 @@ export function h_virtual_list(_id, count, _sizes, getKey, render) {
   return element();
 }
 export const div = element, image = element, svg = element, v_flex = element, h_flex = element;
+export const ScrollHandle = { new: () => ({ scroll_to_item() {}, release() { return true; } }) };
 export const VirtualListScrollHandle = { new: () => ({ scroll_to_item() {}, scroll_to_bottom() {}, release() { return true; } }) };
 export const InputState = { new: () => ({ on() {}, focus() {}, value: () => "" }) }, Input = { new: element };
 export const PathBuilder = { stroke: element, fill: element };

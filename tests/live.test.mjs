@@ -115,3 +115,52 @@ test("the manifest records the tabs fork, and every file the mod loads ships bes
   assert.equal(sourceOf("tokens.js").toString(), readFileSync(new URL("../shared/tokens.js", import.meta.url), "utf8"),
     "tokens.js is a byte copy of the shared contract");
 });
+
+test("a broken or non-object panels value in localStorage leaves the tab bar up with no remembered panel", () => {
+  try {
+    for (const stored of ["{\"s1\":\"fi", "[]", "null", "\"files\"", "7"]) {
+      localStorage.setItem("panels", stored);
+      let view;
+      assert.doesNotThrow(() => { view = renderRole("tabs"); }, stored);
+      assert.deepEqual(view.panels, {}, stored);
+    }
+    localStorage.setItem("panels", JSON.stringify({ s1: "files" }));
+    assert.deepEqual(renderRole("tabs").panels, { s1: "files" }, "a good value is kept");
+  } finally {
+    localStorage.setItem("panels", "{}");
+    globalThis.herdrState = undefined;
+  }
+});
+
+test("the wheel switches one tab per notch, not one per touchpad event", () => {
+  globalThis.herdrRuns = [];
+  try {
+    const view = renderRole("tabs");
+    // One short touchpad swipe arrives as many small pixel deltas.
+    for (let i = 0; i < 10; i++) view.wheel({ delta: { y: 3 }, touch_phase: i === 0 ? "started" : "moved" });
+    assert.deepEqual(globalThis.herdrRuns, [["tab.prev"]]);
+    globalThis.herdrRuns = [];
+    // A line-based mouse wheel reports whole notches.
+    view.wheel({ delta: { y: 0 }, delta_lines: { y: -1 } });
+    view.wheel({ delta: { y: 0 }, delta_lines: { y: -1 } });
+    assert.deepEqual(globalThis.herdrRuns, [["tab.next"], ["tab.next"]]);
+  } finally {
+    globalThis.herdrRuns = undefined;
+    globalThis.herdrState = undefined;
+  }
+});
+
+test("the tab strip scrolls the active tab into view when the selection changes", () => {
+  try {
+    const view = renderRole("tabs");
+    const calls = [];
+    view.scroll = { scroll_to_item: (index) => calls.push(index), release() { return true; } };
+    view.render();
+    assert.deepEqual(calls, [], "the same selection does not scroll again");
+    globalThis.herdrState.spaces[0].tabs = globalThis.herdrState.spaces[0].tabs.map((t) => ({ ...t, active: t.id === "t2" }));
+    view.render();
+    assert.deepEqual(calls, [1]);
+  } finally {
+    globalThis.herdrState = undefined;
+  }
+});
