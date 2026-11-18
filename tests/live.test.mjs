@@ -3,7 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import Live, { tabsKey, letterOf, windowButtons } from "../mods/fm-live/main.js";
+import Live, { tabsKey, letterOf, windowButtons, panelButtons } from "../mods/fm-live/main.js";
 
 const source = readFileSync(new URL("../mods/fm-live/main.js", import.meta.url), "utf8");
 const sourceOf = (name) => readFileSync(new URL(`../mods/fm-live/${name}`, import.meta.url));
@@ -163,4 +163,15 @@ test("the tab strip scrolls the active tab into view when the selection changes"
   } finally {
     globalThis.herdrState = undefined;
   }
+});
+
+test("Files and Changes are drawn only when the layout has the panel and its body", () => {
+  const withPanel = { id: "root", children: [{ id: "panel" }, { id: "panel-body", children: [] }] };
+  const noPanel = { id: "root", children: [{ id: "terminal" }] };
+  const enabled = ["files", "changes"];
+  assert.deepEqual(panelButtons(noPanel, enabled), []);
+  assert.deepEqual(panelButtons(null, enabled), []);
+  assert.deepEqual(panelButtons({ id: "root", children: [{ id: "panel" }] }, enabled), [], "panel without its body cannot show anything");
+  assert.deepEqual(panelButtons(withPanel, enabled), ["files", "changes"]);
+  assert.deepEqual(panelButtons(withPanel, ["changes"]), ["changes"]);
 });

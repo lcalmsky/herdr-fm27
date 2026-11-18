@@ -14,6 +14,12 @@ function find(node, id) {
   return null;
 }
 
+// Files and Changes only act through the layout's `panel` stack child, so a layout without it gets no buttons.
+export function panelButtons(root, enabled) {
+  if (!find(root, "panel") || !find(root, "panel-body")) return [];
+  return ["files", "changes"].filter((id) => enabled.includes(id));
+}
+
 const FOCUS_WATCH_MS = 100;
 const TRANSPARENT = "#00000000";
 const LETTER = { claude: "C", codex: "X", gemini: "G" };
@@ -225,8 +231,9 @@ export default class Live extends View {
         .on_click(() => openOverlay({ mod: "new-menu", kind: "popup", width: 250, height: 512 }))
         .child(svg("mods/fm-live/plus.svg").size(14)))
       .child(div().flex_1())
-      .when(enabled.includes("files"), el => el.child(panelButton("files", "Files", "mods/fm-live/files.svg")))
-      .when(enabled.includes("changes"), el => el.child(panelButton("changes", "Changes", "mods/fm-live/diff.svg")))
+      .children(panelButtons(root, enabled).map(id => id === "files"
+        ? panelButton("files", "Files", "mods/fm-live/files.svg")
+        : panelButton("changes", "Changes", "mods/fm-live/diff.svg")))
       .when(windowButtons().length > 0, el => el.children(windowButtons().map(windowButton)));
   }
 
