@@ -599,6 +599,25 @@ def summarize_transcript(path):
 
 HEAD_BYTES = 512 * 1024
 HANDOFF_RE = re.compile(r"(/[^\s`'\"]+/\.claude/handoff/[\w.-]+\.md)")
+HANDOFF_TAIL_RE = re.compile(r"/\.claude/handoff/[\w.-]+\.md")
+# A path is at most PATH_MAX long, so the search looks back no further than this.
+HANDOFF_PATH_MAX = 4096
+
+
+# The handoff a prompt names. Paths may hold spaces (the iCloud vault sits under "Mobile Documents"),
+# which HANDOFF_RE stops at, so for each handoff tail try every "/" on the same quoted run as the
+# start, longest first, and keep the first file that exists; else HANDOFF_RE's match as before.
+# Looking back at most HANDOFF_PATH_MAX characters keeps a long one-line prompt linear.
+def find_handoff(text):
+    for tail in HANDOFF_TAIL_RE.finditer(text):
+        floor = max(0, tail.start() - HANDOFF_PATH_MAX)
+        start = max(text.rfind(mark, floor, tail.start()) for mark in ("\n", "`", "'", '"')) + 1
+        head = text[max(start, floor):tail.start()]
+        for i, ch in enumerate(head):
+            if ch == "/" and os.path.isfile(head[i:] + tail.group(0)):
+                return head[i:] + tail.group(0)
+    found = HANDOFF_RE.search(text)
+    return found.group(1) if found else None
 # A round is counted either in Korean ("3회차") or in English ("round 3").
 ROUND_RE = re.compile(r"(\d+)\s*회차|\bround\s+(\d+)\b", re.IGNORECASE)
 PASTE_H1_RE = re.compile(r"<pasted_content[^>]*>\s*#\s+([^\n#<]+)")
@@ -770,9 +789,9 @@ def session_identity(path, session_id, cwd):
     prompt = first_prompt(path) if path else None
     if prompt:
         identity["firstPrompt"] = prompt[:400]
-        handoff = HANDOFF_RE.search(prompt)
-        if handoff:
-            heading = first_heading(handoff.group(1))
+        handoff_path = find_handoff(prompt)
+        if handoff_path:
+            heading = first_heading(handoff_path)
             if heading:
                 identity["handoff"] = heading
         round_match = ROUND_RE.search(prompt)
