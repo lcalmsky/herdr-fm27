@@ -980,3 +980,9 @@ test("under herdr-app check the Staff screen runs no cca, timer or agent lookup,
     globalThis.herdrState = undefined;
   }
 });
+
+test("cca's E line gives a model the login it runs on, and only a model", () => {
+  const p = parsePorcelain(["A\twork\tw@x", "M\tcodex\tclaude-gpt\t1", "E\tcodex\tme@x", "E\twork\tother@x", "E\tnobody\tn@x"].join("\n"));
+  assert.equal(p.models.find((m) => m.name === "codex").email, "me@x");
+  assert.equal(p.accounts.find((a) => a.name === "work").email, "w@x", "an account keeps the email its A line gave");
+});

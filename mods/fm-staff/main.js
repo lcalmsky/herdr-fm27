@@ -150,6 +150,9 @@ export function parsePorcelain(text) {
           label: null, usage: null, plan: null, resume: null };
         out.models.push(byName[name]);
       }
+    } else if (kind === "E" && byName[name]?.kind === "model") {
+      // The login a model runs on (cca's E line), so its badge shows that email.
+      byName[name].email = (f[2] ?? "").trim();
     } else if (kind === "L" && name && (f[2] ?? "").trim()) {
       out.labels[name] = f[2].trim();
     } else if (kind === "U" && byName[name]) {
