@@ -6,6 +6,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { emailOf } from "./codex-usage.mjs";
 
 const ID = /^[A-Za-z0-9_-]+$/;
 const NAME_VALUE = /^[A-Za-z_][A-Za-z0-9_]*=/;
@@ -134,11 +135,22 @@ function usageOf(model, modDir, home) {
   return parseUsage(run.stdout);
 }
 
+// The login a codex-rollout model's usage is read from: its auth.json email, else none.
+function loginOf(model, home) {
+  const word = String(model.usage ?? "").trim().match(USAGE_WORD);
+  if (!word) return "";
+  const email = emailOf(expandHome(word[1] ?? "~", home));
+  return /[\t\r\n]/.test(email) ? "" : email;
+}
+
+// E carries the login a model runs on (one line of its own, so readers that predate it skip it).
 function porcelain(models, modDir, home) {
   const out = [];
   for (const model of models) {
     out.push(`M\t${model.id}\t${model.command}\t${model.resume ? 1 : 0}`);
     if (model.label) out.push(`L\t${model.id}\t${model.label}`);
+    const login = loginOf(model, home);
+    if (login) out.push(`E\t${model.id}\t${login}`);
     const usage = model.usage ? usageOf(model, modDir, home) : null;
     if (!usage) continue;
     out.push(`U\t${model.id}\t${usage.fiveUsed}\t${usage.fiveReset}\t${usage.sevenUsed}\t${usage.sevenReset}\t\t`);
