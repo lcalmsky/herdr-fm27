@@ -986,3 +986,31 @@ test("cca's E line gives a model the login it runs on, and only a model", () => 
   assert.equal(p.models.find((m) => m.name === "codex").email, "me@x");
   assert.equal(p.accounts.find((a) => a.name === "work").email, "w@x", "an account keeps the email its A line gave");
 });
+
+test("saving the start command goes through cca launch set, so every layout shares it", async () => {
+  const saved = async (value, result) => {
+    const v = Object.create(ClaudeAccounts.prototype);
+    v.launch = "claude";
+    v.launchEdit = { input: { value: () => value } };
+    v.handle = { focus() {} };
+    globalThis.herdrExec = [];
+    globalThis.herdrExecResult = result;
+    let task = null;
+    v.saveLaunch({ notify() {}, spawn: (fn) => { task = fn({ notify() {} }); } });
+    await task;
+    const calls = globalThis.herdrExec;
+    globalThis.herdrExec = undefined;
+    globalThis.herdrExecResult = undefined;
+    return { v, calls };
+  };
+  const ok = await saved("  ccode --foo 'a b'  ", { code: 0, stdout: "", stderr: "" });
+  assert.deepEqual(ok.calls, [["sh", ["/tmp/mods/fm-staff/cca", "launch", "set", "ccode --foo 'a b'"]]]);
+  assert.equal(ok.v.launch, "ccode --foo 'a b'");
+  assert.equal(ok.v.launchEdit, null);
+  const empty = await saved("   ", { code: 0, stdout: "", stderr: "" });
+  assert.equal(empty.calls[0][1].at(-1), "claude");
+  const bad = await saved("a\tb", { code: 2, stdout: "", stderr: "launch command: no tabs\n" });
+  assert.equal(bad.v.launchError, "launch command: no tabs");
+  assert.ok(bad.v.launchEdit);
+  assert.equal(bad.v.launch, "claude");
+});

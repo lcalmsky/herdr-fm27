@@ -18,17 +18,14 @@ const SESSION_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
 // Herdr has no API for a mod's own folder; the app home is where Herdr keeps mods.
 const cca = () => `${appHome()}/mods/fm-staff/cca`;
 
-// The command a resumed or new session starts with. The file keeps chiikawa-accounts' name on
-// purpose: existing setups already have their start command written there.
-const LAUNCH_FILE = '"${XDG_STATE_HOME:-$HOME/.local/state}/herdr-tower/chiikawa-launch"';
 const MODELS_FILE = '"${XDG_STATE_HOME:-$HOME/.local/state}/herdr-tower/models.json"';
 const DEFAULT_LAUNCH = "claude";
 const shellQuote = (s) => `'${s.replace(/'/g, "'\\''")}'`;
 
 async function readLaunch() {
   try {
-    const r = await exec("sh", ["-c", `cat ${LAUNCH_FILE} 2>/dev/null`]);
-    return (r?.stdout ?? "").trim() || DEFAULT_LAUNCH;
+    const r = await exec("sh", [cca(), "launch"]);
+    return (r?.code === 0 ? (r?.stdout ?? "").trim() : "") || DEFAULT_LAUNCH;
   } catch {
     return DEFAULT_LAUNCH;
   }
@@ -693,7 +690,7 @@ export default class FmStaff extends View {
     cx.spawn(async (cx) => {
       let res = null;
       try {
-        res = await exec("sh", ["-c", `f=${LAUNCH_FILE}; mkdir -p "$(dirname "$f")" && printf '%s\\n' "$1" > "$f"`, "x", value]);
+        res = await exec("sh", [cca(), "launch", "set", value]);
       } catch {}
       this.savingLaunch = false;
       if (!res || res.code !== 0) {

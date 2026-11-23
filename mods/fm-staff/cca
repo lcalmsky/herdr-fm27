@@ -11,6 +11,11 @@ STATE="$TOWER/usage"
 HERE=$(cd "$(dirname "$(readlink -f "$0" 2>/dev/null || printf %s "$0")")" && pwd)
 CURRENT="$TOWER/current"
 CODEX_CURRENT="$TOWER/codex-current"
+# The command new and resumed Claude sessions start with, one for every layout.
+LAUNCH="$TOWER/launch"
+# Where each layout's accounts mod kept it before LAUNCH existed; the first one with a value is
+# read until a layout saves into LAUNCH.
+LAUNCH_LEGACY="cozy-launch chiikawa-launch night-city-launch arcade-launch inkpaw-launch"
 LABELS="$TOWER/labels"
 SHARED="projects history.jsonl file-history todos plans tasks teams paste-cache session-env sessions"
 
@@ -20,7 +25,7 @@ die() { printf 'cca: %s\n' "$*" >&2; exit 1; }
 die_as() { code=$1; shift; printf 'cca: %s\n' "$*" >&2; exit "$code"; }
 
 reserved_name() {
-  case "$1" in ls|add|share|use|current|shell-init|help|'-'*) return 0 ;; esac
+  case "$1" in ls|add|share|use|current|launch|shell-init|help|'-'*) return 0 ;; esac
   return 1
 }
 
@@ -674,6 +679,45 @@ cmd_current() {
   current_default
 }
 
+# The first line of a file, trimmed; empty when the file is missing or blank.
+first_line() {
+  [ -r "$1" ] || return 0
+  sed -n '1{s/^[[:space:]]*//;s/[[:space:]]*$//;p;}' "$1"
+}
+
+# `cca launch` prints the start command (nothing when none was ever saved; the caller falls back
+# to claude). `cca launch set <command>` saves it for every layout; an empty command clears it.
+# Exit 2: a command with a tab or line break.
+cmd_launch() {
+  case "${1:-}" in
+    '')
+      value=$(first_line "$LAUNCH")
+      if [ -z "$value" ] && [ ! -e "$LAUNCH" ]; then
+        for name in $LAUNCH_LEGACY; do
+          value=$(first_line "$TOWER/$name")
+          [ -n "$value" ] && break
+        done
+      fi
+      [ -n "$value" ] && printf '%s\n' "$value"
+      return 0
+      ;;
+    set)
+      value=${2-}
+      tab=$(printf '\t'); cr=$(printf '\r')
+      case "$value" in *"$tab"*|*"$cr"*) die_as 2 "a start command is one line" ;; esac
+      case "$value" in *'
+'*) die_as 2 "a start command is one line" ;; esac
+      value=$(printf '%s' "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+      mkdir -p "$TOWER" || die "cannot create $TOWER"
+      tmp="$LAUNCH.tmp.$$"
+      if printf '%s\n' "$value" > "$tmp" && mv "$tmp" "$LAUNCH"; then :; else
+        rm -f "$tmp"; die "cannot write $LAUNCH"
+      fi
+      ;;
+    *) die_as 2 "usage: cca launch [set <command>]" ;;
+  esac
+}
+
 # Sets the account or model every new session starts under. Exit 2: unusable name, 3: no such
 # account or model.
 cmd_use() {
@@ -813,6 +857,9 @@ cca — Claude Code accounts
                        CLAUDE_CONFIG_DIR unset (cca work -c continues here)
   cca use <name>       make <name> the default for every new session
   cca current          print that default
+  cca launch           print the command new and resumed Claude sessions start
+                       with (nothing: claude); cca launch set <command> saves
+                       it for every layout
   cca shell-init       the claude() shell function that applies it; eval it
                        from ~/.zshrc to make a new shell start under it
   cca add <name>       create ~/.claude-accounts/<name>, sharing config and history
@@ -828,6 +875,7 @@ Names: letters, digits, - and _.
 Usage files: ${XDG_STATE_HOME:-$HOME/.local/state}/herdr-tower/usage/
 Default for new sessions: ${XDG_STATE_HOME:-$HOME/.local/state}/herdr-tower/current
 Codex default for new sessions: ${XDG_STATE_HOME:-$HOME/.local/state}/herdr-tower/codex-current
+Start command: ${XDG_STATE_HOME:-$HOME/.local/state}/herdr-tower/launch
 EOF
 }
 
@@ -840,6 +888,7 @@ case "${1:-}" in
   use) shift; cmd_use "${1:-}" ;;
   codex) shift; cmd_codex "$@" ;;
   current) cmd_current ;;
+  launch) shift; cmd_launch "$@" ;;
   shell-init) cmd_shell_init ;;
   --porcelain) shift; cmd_porcelain "${1:-}" ;;
   --porcelain-add) shift; cmd_porcelain_add "${1:-}" ;;
